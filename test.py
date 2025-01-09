@@ -14,6 +14,7 @@ jd_start = datetime(4713, 1, 1)  # 儒略日的起始时间
 # 转换为标准日期时间
 dates = [datetime(4713, 1, 1) + timedelta(days=m - 1721424.5) for m in mtime]
 print(dates[0].month)
+print('test')
 # np.savez('ADCP_uv.npz', u=u, v=v, depth=depth, mtime=mtime)
 # [time_axis, depth_axis] = np.meshgrid(mtime, depth)
 #

@@ -43,7 +43,7 @@ plt.xlabel(r'$\zeta_g/f$')
 plt.ylabel(r'$KE_{NI}^{WKB}$ $(J/m^{3})$')
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(r'figures\PDF_withDataGLORYS_layers.jpg', dpi=350)
+# plt.savefig(r'figures\PDF_withDataGLORYS_layers.jpg', dpi=350)
 plt.show()
 # for debugging
 print('c')

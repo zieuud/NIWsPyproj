@@ -15,9 +15,9 @@ lat_moor = 36.23
 fi = 2 * 7.292e-5 * np.sin(lat_moor/180*np.pi)
 vf = vorticity_moor / fi
 # ----------plot the PDF----------
-# KE_ni_dinteg = np.trapz(KE_ni, -depth) / 1000
-KE_ni_flat = KE_ni.flatten()
-vf = np.tile(vf, KE_ni.shape[1])
+KE_ni_dinteg = np.trapz(KE_ni, -depth) / 1000
+KE_ni_flat = KE_ni_dinteg.flatten()
+# vf = np.tile(vf, KE_ni.shape[1])
 vf_flat = vf[~np.isnan(KE_ni_flat)]
 KE_ni_flat = KE_ni_flat[~np.isnan(KE_ni_flat)]
 
@@ -60,7 +60,7 @@ plt.xlabel(r'$\zeta_g/f$')
 plt.ylabel(r'$KE_{NI}^{WKB}$ $(J/m^{3})$')
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(r'figures\PDF_withDataGLORYS.jpg', dpi=350)
+# plt.savefig(r'figures\PDF_withDataGLORYS.jpg', dpi=350)
 plt.show()
 # ----------plot the vorticity and KE_ni---------
 fig = plt.figure(figsize=(10, 8))

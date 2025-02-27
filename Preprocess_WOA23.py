@@ -3,6 +3,7 @@ import numpy as np
 
 
 t1 = nc.Dataset(r'K:\grad_proj\WOA23\woa23_B5C2_t12_04.nc')
+print(t1.variables)
 # print(t1.variables.keys())
 # print(t1.variables)
 lon_idx = np.argmin(np.abs(t1.variables['lon'][:] - (-32.75)))
@@ -17,9 +18,10 @@ for i in range(1, 13):
     path2 = r'K:\grad_proj\WOA23\woa23_B5C2_s{:02}_04.nc'.format(i)
     temp = nc.Dataset(path1)
     t_an[i-1] = temp.variables['t_an'][0, :, lat_idx, lon_idx]
+    print(temp.variables['time'][:])
     salt = nc.Dataset(path2)
     s_an[i-1] = salt.variables['s_an'][0, :, lat_idx, lon_idx]
 
-np.savez(r'ReanaData\WOA23_st.npz', t=t_an, s=s_an, z=depth, loc=[lat, lon])
+# np.savez(r'ReanaData\WOA23_st.npz', t=t_an, s=s_an, z=depth, loc=[lat, lon])
 
 

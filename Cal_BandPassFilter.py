@@ -57,8 +57,7 @@ u = np.transpose(moorData['u'])
 v = np.transpose(moorData['v'])  # transpose to (time, depth)
 depth = moorData['depth']
 moorDate = moorData['mtime']
-woa23 = np.load(r'ReanaData\WOA23_st.npz')
-[lat, lon] = woa23['loc']
+lat = 36.23
 nt = len(moorDate)
 dt = round((moorDate[1] - moorDate[0]) * 24 * 3600)
 

@@ -26,7 +26,7 @@ hist, xedges, yedges = np.histogram2d(vorticity_flat, strain_flat, bins=[x_bins,
 hist_density = hist / (np.nanmax(hist) - np.nanmin(hist))
 # 绘制热图
 plt.figure(figsize=(12, 6))
-plt.imshow(hist_density[::-1, :].T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], -xedges[0], yedges[0], yedges[-1]],
+plt.imshow(hist_density.T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], -xedges[0], yedges[0], yedges[-1]],
            norm=LogNorm(1e-4, 1))
 plt.plot(yedges, yedges, 'k--')
 plt.plot(-yedges, yedges, 'k--')

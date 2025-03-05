@@ -7,7 +7,7 @@ N2 = np.load(r'ReanaData\WOA23_N2_grid.npy')
 moorData = np.load('ADCP_uv.npz')
 depth = moorData['depth']
 moorDate = moorData['mtime']
-dates = [datetime(4713, 1, 1) + timedelta(days=m - 1721424.5) for m in moorDate]
+dates = [datetime(1, 1, 1) + timedelta(days=m-366) for m in mtime]
 
 uv_ni = np.load('ADCP_uv_ni.npz')
 u_ni = uv_ni['u_ni']

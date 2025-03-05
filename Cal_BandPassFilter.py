@@ -6,7 +6,8 @@ from matplotlib import pyplot as plt
 
 def filter_ni(var, dt, nt, lat, c=1.25, N=4):
     fi = gsw.f(lat)/(2*np.pi)
-    Wn = np.array([(1. / c) * fi, c * fi]) * (2 * dt)
+    # Wn = np.array([(1. / c) * fi, c * fi]) * (2 * dt)
+    Wn = np.array([0.9 * fi, 1.1 * fi]) * (2 * dt)
     b, a = sig.butter(N, Wn, btype='bandpass', output='ba')
     var_ni = np.copy(var) * np.nan
     for k in range(u.shape[-1]):

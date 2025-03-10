@@ -6,7 +6,8 @@ from matplotlib import pyplot as plt
 
 def filter_ni(var, dt, nt, lat, c=1.25, N=4):
     fi = gsw.f(lat)/(2*np.pi)
-    Wn = np.array([(1. / c) * fi, c * fi]) * (2 * dt)
+    # Wn = np.array([(1. / c) * fi, c * fi]) * (2 * dt)
+    Wn = np.array([0.9 * fi, 1.1 * fi]) * (2 * dt)
     b, a = sig.butter(N, Wn, btype='bandpass', output='ba')
     var_ni = np.copy(var) * np.nan
     for k in range(u.shape[-1]):
@@ -57,8 +58,7 @@ u = np.transpose(moorData['u'])
 v = np.transpose(moorData['v'])  # transpose to (time, depth)
 depth = moorData['depth']
 moorDate = moorData['mtime']
-woa23 = np.load(r'ReanaData\WOA23_st.npz')
-[lat, lon] = woa23['loc']
+lat = 36.23
 nt = len(moorDate)
 dt = round((moorDate[1] - moorDate[0]) * 24 * 3600)
 

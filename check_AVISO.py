@@ -25,8 +25,9 @@ moorData = np.load('ADCP_uv.npz')
 moorDate = moorData['mtime']
 dateForPlot = [datetime(1, 1, 1) + timedelta(days=m-366) for m in moorDate]
 # ---------- calculate the vorticity and divergence of 4 points ----------
-dx = 110000./4.
-dy = 110000./4.
+R = 6371000
+dxs = R * np.radians(0.25)
+dys = [R * np.cos(np.radians(i)) * np.radians(0.25) for i in [36.375, 36.375, 36.125, 36.125]]
 selections = [[-32.625, 36.375], [-32.875, 36.375], [-32.625, 36.125], [-32.875, 36.125]]
 vorticitySelections = {}
 divergenceSelections = {}
@@ -34,38 +35,36 @@ strainSelections = {}
 uSelections = {}
 vSelections = {}
 for locs in selections:
+    idx = selections.index(locs)
     lonIdx = np.argwhere(lon == locs[0])
     latIdx = np.argwhere(lat == locs[1])
-    dvdx = (v_geo[:, latIdx, lonIdx + 1] - v_geo[:, latIdx, lonIdx - 1]) / (2 * dx)
-    dudy = (u_geo[:, latIdx + 1, lonIdx] - u_geo[:, latIdx - 1, lonIdx]) / (2 * dy)
+    dvdx = (v_geo[:, latIdx, lonIdx + 1] - v_geo[:, latIdx, lonIdx - 1]) / (2 * dxs)
+    dudy = (u_geo[:, latIdx + 1, lonIdx] - u_geo[:, latIdx - 1, lonIdx]) / (2 * dys[idx])
     vorticity = np.squeeze(dvdx - dudy)
     vorticitySelections[tuple(locs)] = interp_on_time(vorticity, avisoDate, moorDate)
-    dudx = (u_geo[:, latIdx + 1, lonIdx] - u_geo[:, latIdx - 1, lonIdx]) / (2 * dx)
-    dvdy = (v_geo[:, latIdx, lonIdx + 1] - v_geo[:, latIdx, lonIdx - 1]) / (2 * dy)
+    dudx = (u_geo[:, latIdx + 1, lonIdx] - u_geo[:, latIdx - 1, lonIdx]) / (2 * dxs)
+    dvdy = (v_geo[:, latIdx, lonIdx + 1] - v_geo[:, latIdx, lonIdx - 1]) / (2 * dys[idx])
     divergence = np.squeeze(dudx + dvdy)
     divergenceSelections[tuple(locs)] = interp_on_time(divergence, avisoDate, moorDate)
     strain = np.squeeze(np.sqrt((dudx - dvdy) ** 2 + (dudy - dvdx) ** 2))
     strainSelections[tuple(locs)] = interp_on_time(strain, avisoDate, moorDate)
     uSelections[tuple(locs)] = interp_on_time(np.squeeze(u_geo[:, latIdx, lonIdx]), avisoDate, moorDate)
     vSelections[tuple(locs)] = interp_on_time(np.squeeze(v_geo[:, latIdx, lonIdx]), avisoDate, moorDate)
-vorticity_GLORYS = np.load(r'ReanaData\GLORYS_vorticity.npy')
 
 # ---------- plot for checking ----------
 plt.figure(1, figsize=(10, 6))
 for vorticity in vorticitySelections.values():
     plt.plot(dateForPlot, vorticity)
-plt.plot(dateForPlot, vorticity_GLORYS)
 plt.title('vorticity (dv/dx - du/dy)')
-plt.legend(['1', '2', '3', '4', 'GLORYS'])
-plt.savefig(r'figures\check_vorticity_AVISO_GLORYS.jpg', dpi=300)
-plt.show()
+plt.legend(['1', '2', '3', '4'])
+plt.savefig(r'figures\check_vorticity_AVISO.jpg', dpi=300)
 
 plt.figure(2, figsize=(10, 6))
 for divergence in divergenceSelections.values():
     plt.plot(dateForPlot, divergence)
 plt.title('divergence (du/dx + dv/dy)')
 plt.legend(['1', '2', '3', '4'])
-# plt.savefig(r'figures\check_divergence.jpg', dpi=300)
+plt.savefig(r'figures\check_divergence_AVISO.jpg', dpi=300)
 
 plt.figure(3, figsize=(10, 6))
 for strain in strainSelections.values():
@@ -93,7 +92,7 @@ for divergence in divergenceSelections.values():
     plt.plot(dateForPlot, divergence / fi)
 plt.title('divergence/f')
 plt.legend(['1', '2', '3', '4'])
-plt.savefig(r'figures\check_div_f.jpg', dpi=300)
+# plt.savefig(r'figures\check_div_f.jpg', dpi=300)
 
 plt.show()
 print('c')

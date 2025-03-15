@@ -3,10 +3,17 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, LogNorm
 from scipy import interpolate
 
-vorticity_moor_hourly = np.load(r'ReanaData\GLORYS_vorticity_layers.npy')
-strain_moor_hourly = np.load(r'ReanaData\GLORYS_strain_layers.npy')
-moorData = np.load(r'ADCP_uv_ni.npz')
-KE_ni = moorData['KE_ni']
+# use GLORYS data
+# vorticity_moor_hourly = np.load(r'ReanaData\GLORYS_vorticity.npy')[:, :180]
+# strain_moor_hourly = np.load(r'ReanaData\GLORYS_strain.npy')[:, :180]
+# use AVISO data
+vorticity_moor_hourly = np.load(r'ReanaData\AVISO_vorticity1.npy')
+vorticity_moor_hourly = np.tile(vorticity_moor_hourly, (180, 1)).T
+strain_moor_hourly = np.load(r'ReanaData\AVISO_strain1.npy')
+strain_moor_hourly = np.tile(strain_moor_hourly, (180, 1)).T
+
+moorData = np.load(r'ADCP_uv_ni_wkb.npz')
+KE_ni = moorData['KE_ni_wkb'][:, :180]
 adcp0 = np.load(r'ADCP_uv.npz')
 moorDepth = adcp0['depth']
 lat_moor = 36.23
@@ -14,39 +21,52 @@ fi = 2 * 7.292e-5 * np.sin(lat_moor/180*np.pi)
 vf = vorticity_moor_hourly / fi
 sf = strain_moor_hourly / fi
 # ---------- plot jPDF ----------
-# 展平
 vorticity_flat = vf.flatten()
 strain_flat = sf.flatten()
 KE_flat = KE_ni.flatten()
-# 分区间
-x_bins = np.linspace(vorticity_flat.min(), vorticity_flat.max(), 50)  # vorticity的区间
-y_bins = np.linspace(strain_flat.min(), strain_flat.max(), 50)  # strain的区间
-# 计算每个bin的KE总和
+indices = np.isnan(KE_flat)
+KE_flat = KE_flat[~indices]
+vorticity_flat = vorticity_flat[~indices]
+strain_flat = strain_flat[~indices]
+
+x_bins = np.linspace(vorticity_flat.min(), vorticity_flat.max(), 50)
+y_bins = np.linspace(strain_flat.min(), strain_flat.max(), 50)
+
 hist, xedges, yedges = np.histogram2d(vorticity_flat, strain_flat, bins=[x_bins, y_bins], weights=KE_flat)
 hist_density = hist / (np.nanmax(hist) - np.nanmin(hist))
-# 绘制热图
+indices1 = (hist_density == 0)
+indices2 = np.isnan(hist_density)
+# plot
 plt.figure(figsize=(12, 6))
-plt.imshow(hist_density.T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], -xedges[0], yedges[0], yedges[-1]],
-           norm=LogNorm(1e-4, 1))
-plt.plot(yedges, yedges, 'k--')
-plt.plot(-yedges, yedges, 'k--')
+# ----- probability1 -----
+plt.imshow(hist_density.T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], norm=LogNorm(1e-4, 1))
+# ----- probability2 -----
+# X, Y = np.meshgrid(xedges[:-1], yedges[:-1])
+# levels = np.logspace(-5, 1, 6)
+# plt.contourf(X, Y, hist_density.T, cmap="Blues", levels=levels, norm=LogNorm())
+# ----- NIKE absolute value -----
+hist[hist == 0] = np.nan
+# plt.imshow(hist.T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], vmin=0, vmax=10e3)
+plt.plot([0, 0.3], [0, 0.3], 'k--')
+plt.plot([-0.3, 0], [0.3, 0], 'k--')
 # ---------- beautify ----------
 plt.colorbar(label='PDF (%)')
-plt.xlim(-0.2, 0.2)
-plt.ylim(0, 0.2)
+plt.xlim(-0.3, 0.3)
+plt.ylim(0, 0.3)
 plt.xlabel(r'$\zeta/f$')
 plt.ylabel(r'$\sigma/f$')
 plt.title('jPDF')
-# plt.savefig(r'figures\jPDF.jpg', dpi=350)
+# plt.savefig(r'figures\jPDF_NIKE.jpg', dpi=300)
 plt.show()
 # ---------- plot depth distribution of different dominant regions ----------
-AVD = np.zeros(245)
-AVD_count = np.zeros(245)
-SD = np.zeros(245)
-SD_count = np.zeros(245)
-CVD = np.zeros(245)
-CVD_count = np.zeros(245)
-for i in range(245):
+nz = len(moorDepth[:180])
+AVD = np.zeros(nz)
+AVD_count = np.zeros(nz)
+SD = np.zeros(nz)
+SD_count = np.zeros(nz)
+CVD = np.zeros(nz)
+CVD_count = np.zeros(nz)
+for i in range(nz):
     for j in range(6650):
         if np.isnan(KE_ni[j, i]):
             continue
@@ -62,7 +82,7 @@ for i in range(245):
         else:
             CVD[i] += KE_ni[j, i]
             CVD_count[i] += 1
-plt.figure(figsize=(8, 6))
+plt.figure(figsize=(6, 8))
 annualAVD = AVD/AVD_count
 x_valid = np.arange(len(annualAVD))[~np.isnan(annualAVD)]
 y_valid = annualAVD[~np.isnan(annualAVD)]
@@ -84,10 +104,11 @@ interp_func = interpolate.interp1d(x_valid, y_valid, kind='linear', fill_value="
 annualCVD_filled = annualCVD.copy()
 annualCVD_filled[np.isnan(annualCVD)] = interp_func(np.arange(len(annualCVD))[np.isnan(annualCVD)])
 
-plt.plot(annualAVD_filled, moorDepth)
-plt.plot(annualSD_filled, moorDepth)
-plt.plot(annualCVD_filled, moorDepth)
+plt.plot(annualAVD_filled, moorDepth[:180])
+plt.plot(annualSD_filled, moorDepth[:180])
+plt.plot(annualCVD_filled, moorDepth[:180])
 plt.legend(['AVD', 'SD', 'CVD'])
+plt.savefig(r'figures\depth distribution of different dominant regions.jpg', dpi=300)
 plt.show()
 # for debugging
 print('c')

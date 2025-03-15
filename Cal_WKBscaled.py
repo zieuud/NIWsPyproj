@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
-
 import numpy as np
 from matplotlib import pyplot as plt
 
+pycnocline = np.load(r'ReanaData\GLORYS_pycnocline.npy')
 N2 = np.load(r'ReanaData\WOA23_N2_grid.npy')
 moorData = np.load('ADCP_uv.npz')
 depth = moorData['depth']
@@ -16,9 +16,10 @@ KE_ni = uv_ni['KE_ni']
 u_ni_wkb = np.copy(u_ni)
 v_ni_wkb = np.copy(v_ni)
 N2_averaged = np.nanmean(N2, 1)
+N2_integrated = np.trapz(N2[:, :180], -depth[:180], 1)
 
 for i in range(len(moorDate)):
-    ml_idx = np.nanargmax(N2[i, :])
+    ml_idx = np.argmin(abs(-pycnocline[i] - depth))
     u_ni_wkb[i, ml_idx:184] = u_ni[i, ml_idx:184] * np.sqrt(np.sqrt(N2_averaged[i])/np.sqrt(N2[i, ml_idx:184]))
     v_ni_wkb[i, ml_idx:184] = v_ni[i, ml_idx:184] * np.sqrt(np.sqrt(N2_averaged[i])/np.sqrt(N2[i, ml_idx:184]))
 KE_ni_wkb = 1/2*1025*(u_ni_wkb**2+v_ni_wkb**2)
@@ -39,7 +40,7 @@ for i in range(len(moorDate)):
         KE_ni_wkb_monthly[month_last-1, :] = np.nanmean(KE_ni_wkb[idx_start:idx_end, :], 0)
         idx_start = idx_end
         month_last = month_now
-# np.savez('ADCP_uv_ni_wkb.npz', u_ni_wkb=u_ni_wkb, v_ni_wkb=v_ni_wkb, KE_ni_wkb=KE_ni_wkb)
+np.savez('ADCP_uv_ni_wkb.npz', u_ni_wkb=u_ni_wkb, v_ni_wkb=v_ni_wkb, KE_ni_wkb=KE_ni_wkb)
 # plt.figure(1, figsize=(4, 5))
 # KE_ni_timeAvg = np.nanmean(KE_ni, 0)
 # KE_ni_wkb_timeAvg = np.nanmean(KE_ni_wkb, 0)

@@ -4,10 +4,10 @@ import gsw
 from matplotlib.colors import Normalize, LogNorm
 import scipy.stats as stats
 
-# vorticity_moor = np.load(r'ReanaData\Glorys_vorticity.npy')
-# N2 = np.load(r'ReanaData\WOA23_N2_grid.npy')
-temp = np.load(r'ReanaData\WOA23_temp_grid.npy')
+
+pycnocline = np.load(r'ReanaData\GLORYS_pycnocline.npy')
 vorticity_moor = np.load(r'ReanaData\AVISO_vorticity4.npy')
+# vorticity_moor = np.load(r'ReanaData\GLORYS_vorticity.npy')[:, 0]
 adcp = np.load('ADCP_uv_ni_wkb.npz')
 KE_ni = adcp['KE_ni_wkb']
 adcp0 = np.load('ADCP_uv.npz')
@@ -16,36 +16,25 @@ depth = adcp0['depth']
 lat_moor = 36.23
 fi = 2 * 7.292e-5 * np.sin(lat_moor/180*np.pi)
 vf = vorticity_moor / fi
-# ----------plot the PDF----------
+# ---------- plot the PDF ----------
 KE_ni_dinteg = np.zeros(np.size(KE_ni, 0))
 for idx in range(np.size(KE_ni, 0)):
-    # ml_idx = np.nanargmax(N2[idx, :])
-    ml_idx = np.argwhere(temp[idx, :] - temp[idx, 0] < -0.5)[0][0]
+    ml_idx = np.argmin(abs(-pycnocline[idx] - depth))
     KE_ni_under_ml = KE_ni[idx, ml_idx:]
     depth_under_ml = -depth[ml_idx:]
     KE_ni_dinteg[idx] = np.trapz(KE_ni_under_ml[~np.isnan(KE_ni_under_ml)], depth_under_ml[~np.isnan(KE_ni_under_ml)]) / 1000
 KE_ni_flat = KE_ni_dinteg.flatten()
-# KE_ni_flat = KE_ni.flatten()
-# vf = np.tile(vf, KE_ni.shape[1])
+# delete nan value
 vf_flat = vf[~np.isnan(KE_ni_flat)]
 KE_ni_flat = KE_ni_flat[~np.isnan(KE_ni_flat)]
-
+# plot
 plt.figure(figsize=(10, 6))
-counts, xedges, yedges, image = plt.hist2d(
-    vf_flat,
-    KE_ni_flat,
-    bins=(50, 50),
-    cmap='Blues',
-    density=True,
-    norm=LogNorm(vmin=1e-2, vmax=1)  # 设置对数刻度颜色条
-)
+counts, xedges, yedges, image = plt.hist2d(vf_flat, KE_ni_flat, bins=(50, 50), cmap='Blues', density=True,
+                                           norm=LogNorm(vmin=1e-2, vmax=1))
 plt.plot([0, 0], [KE_ni_flat.min(), KE_ni_flat.max()], 'k--')
-# plt.show()
 density = np.transpose(counts/np.sum(counts))
 density = density/np.max(density)
 plt.pcolor(xedges, yedges, density, cmap='Blues', norm=LogNorm(vmin=1e-2, vmax=1))
-# plt.colorbar(norm=LogNorm(vmin=1e-2, vmax=1))
-# plt.show()
 # ---------- find the mean values of every bins ----------
 maxIdx = np.zeros(50)
 for i in range(50):
@@ -69,7 +58,7 @@ plt.xlabel(r'$\zeta_g/f$')
 plt.ylabel(r'$KE_{NI}^{WKB}$ $(J/m^{3})$')
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(r'figures\PDF_depth_integrated4.jpg', dpi=300)
+# plt.savefig(r'figures\PDF_depth_integrated4.jpg', dpi=300)
 plt.show()
 # # ----------plot the vorticity and KE_ni---------
 # fig = plt.figure(figsize=(10, 8))

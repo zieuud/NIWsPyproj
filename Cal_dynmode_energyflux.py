@@ -74,41 +74,28 @@ def dynmodes(N2, z, nmodes):
 
 Nsq = np.load(r'ReanaData\WOA23_N2_grid.npy')
 adcp = np.load(r'ADCP_uv.npz')
-depth = adcp['depth']
+depth = adcp['depth'][:180]
 mtime = adcp['mtime']
-moorData = np.load(r'ADCP_uv_ni_wkb.npz')
-u = moorData['u_ni_wkb']
-v = moorData['v_ni_wkb']
+energyFlux = np.load(r'ReanaData\WOA23_uvp_ni_wkb.npz')
+up_ni_wkb = energyFlux['up_ni_wkb']
+vp_ni_wkb = energyFlux['vp_ni_wkb']
 
-nt = np.size(u, 0)
+nt = len(mtime)
+nz = len(depth)
 nmodes = 11
-z_idx = 180
-u_mod = np.zeros((nt, nmodes, z_idx))
-v_mod = np.zeros((nt, nmodes, z_idx))
-NIKE = np.zeros((nt, nmodes, z_idx))
+u_mod = np.zeros((nt, nmodes, nz))
+v_mod = np.zeros((nt, nmodes, nz))
+NIKE = np.zeros((nt, nmodes, nz))
 Nmean = np.nanmean(Nsq, 0)
-wmodes, pmodes, ce = dynmodes(np.squeeze(Nmean), depth[:180], nmodes)
-# for t in range(nt):
-#     wmodes, pmodes, ce = dynmodes(np.squeeze(Nsq[t, :180]), depth[:180], nmodes)
-#     u_mod_coeff = np.linalg.lstsq(wmodes.T, np.squeeze(u[t, :180]))[0]
-#     u_mod[t, :, :] = np.dot(u[t, :180].reshape(-1, 1), u_mod_coeff.reshape(1, -1)).T
-#     v_mod_coeff = np.linalg.lstsq(wmodes.T, np.squeeze(v[t, :180]))[0]
-#     v_mod[t, :, :] = np.dot(v[t, :180].reshape(-1, 1), v_mod_coeff.reshape(1, -1)).T
-#     NIKE[t, :, :] = 1 / 2 * 1025 * (u_mod[t, :, :] ** 2 + v_mod[t, :, :] ** 2)
-# np.savez(r'ADCP_uv_10modes.npz', u_mod=u_mod, v_mod=v_mod, KE_mod=NIKE)
 
-plt.figure(1, figsize=(10, 12))
-for i in range(12):
-    plt.subplot(2, 6, i+1)
-    if i == 0:
-        plt.plot(Nmean[:180], depth[:180])
-        plt.ylabel('depth (m)')
-        plt.title(r'$N^{2}$')
-    else:
-        plt.plot(wmodes[i-1, :].T, depth[:180])
-        plt.yticks([])
-        plt.plot([0, 0], [depth[0], depth[180]], 'k--')
-        plt.title('mode {}'.format(i-1))
-plt.savefig(r'figures\time-averaged mode structure 10.jpg', dpi=300)
-# plt.show()
-print('c')
+for t in range(nt):
+    wmodes, pmodes, ce = dynmodes(np.squeeze(Nsq[t, :180]), depth[:180], nmodes)
+    u_mod_coeff = np.linalg.lstsq(wmodes.T, np.squeeze(up_ni_wkb[t, :180]))[0]
+    u_mod[t, :, :] = np.dot(up_ni_wkb[t, :180].reshape(-1, 1), u_mod_coeff.reshape(1, -1)).T
+
+    v_mod_coeff = np.linalg.lstsq(wmodes.T, np.squeeze(vp_ni_wkb[t, :180]))[0]
+    v_mod[t, :, :] = np.dot(vp_ni_wkb[t, :180].reshape(-1, 1), v_mod_coeff.reshape(1, -1)).T
+
+    NIKE[t, :, :] = 1 / 2 * 1025 * (u_mod[t, :, :] ** 2 + v_mod[t, :, :] ** 2)
+
+np.savez(r'ReanaData\WOA23_uvp_ni_wkb_10modes.npz', up_ni_wkb_mod=u_mod, vp_ni_wkb_mod=v_mod, KEp_ni_wkb_mod=NIKE)

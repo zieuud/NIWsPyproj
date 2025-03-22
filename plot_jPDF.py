@@ -3,6 +3,15 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, LogNorm
 from scipy import interpolate
 
+
+def smooth(profile):
+    x_valid = np.arange(len(profile))[~np.isnan(profile)]
+    y_valid = profile[~np.isnan(profile)]
+    interp_func = interpolate.interp1d(x_valid, y_valid, kind='linear', fill_value="extrapolate")
+    profile_filled = profile.copy()
+    profile_filled[np.isnan(profile)] = interp_func(np.arange(len(profile))[np.isnan(profile)])
+    return profile_filled
+
 # use GLORYS data
 # vorticity_moor_hourly = np.load(r'ReanaData\GLORYS_vorticity.npy')[:, :180]
 # strain_moor_hourly = np.load(r'ReanaData\GLORYS_strain.npy')[:, :180]
@@ -29,8 +38,8 @@ KE_flat = KE_flat[~indices]
 vorticity_flat = vorticity_flat[~indices]
 strain_flat = strain_flat[~indices]
 
-x_bins = np.linspace(vorticity_flat.min(), vorticity_flat.max(), 50)
-y_bins = np.linspace(strain_flat.min(), strain_flat.max(), 50)
+x_bins = np.linspace(vorticity_flat.min(), vorticity_flat.max(), 30)
+y_bins = np.linspace(strain_flat.min(), strain_flat.max(), 30)
 
 hist, xedges, yedges = np.histogram2d(vorticity_flat, strain_flat, bins=[x_bins, y_bins], weights=KE_flat)
 hist_density = hist / (np.nanmax(hist) - np.nanmin(hist))
@@ -39,76 +48,81 @@ indices2 = np.isnan(hist_density)
 # plot
 plt.figure(figsize=(12, 6))
 # ----- probability1 -----
-plt.imshow(hist_density.T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], norm=LogNorm(1e-4, 1))
+# plt.imshow(hist_density.T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], norm=LogNorm(1e-2, 1))
 # ----- probability2 -----
-# X, Y = np.meshgrid(xedges[:-1], yedges[:-1])
-# levels = np.logspace(-5, 1, 6)
-# plt.contourf(X, Y, hist_density.T, cmap="Blues", levels=levels, norm=LogNorm())
+X, Y = np.meshgrid(xedges[:-1], yedges[:-1])
+levels = np.logspace(-5, 1, 6)
+plt.contourf(X, Y, hist_density.T, cmap="Blues", levels=levels, norm=LogNorm())
 # ----- NIKE absolute value -----
-hist[hist == 0] = np.nan
+# hist[hist == 0] = np.nan
 # plt.imshow(hist.T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], vmin=0, vmax=10e3)
+
 plt.plot([0, 0.3], [0, 0.3], 'k--')
 plt.plot([-0.3, 0], [0.3, 0], 'k--')
 # ---------- beautify ----------
 plt.colorbar(label='PDF (%)')
-plt.xlim(-0.3, 0.3)
-plt.ylim(0, 0.3)
+plt.xlim(-0.1, 0.1)
+plt.ylim(0, 0.1)
 plt.xlabel(r'$\zeta/f$')
 plt.ylabel(r'$\sigma/f$')
 plt.title('jPDF')
-# plt.savefig(r'figures\jPDF_NIKE.jpg', dpi=300)
+# plt.savefig(r'figures\jPDF_AVISO.jpg', dpi=300)
 plt.show()
 # ---------- plot depth distribution of different dominant regions ----------
 nz = len(moorDepth[:180])
+nt = 6650
 AVD = np.zeros(nz)
-AVD_count = np.zeros(nz)
+AVD_count = np.zeros(nz) + 1
 SD = np.zeros(nz)
-SD_count = np.zeros(nz)
+SD_count = np.zeros(nz) + 1
 CVD = np.zeros(nz)
-CVD_count = np.zeros(nz)
+CVD_count = np.zeros(nz) + 1
 for i in range(nz):
-    for j in range(6650):
+    for j in range(nt):
         if np.isnan(KE_ni[j, i]):
             continue
-        if vf[j, i] == 0:
+        elif vf[j, i] == 0:
             SD[i] += KE_ni[j, i]
             SD_count[i] += 1
-        elif -1 <= sf[j, i]/vf[j, i] < 0:
-            AVD[i] += KE_ni[j, i]
-            AVD_count[i] += 1
-        elif sf[j, i]/vf[j, i] < -1 or sf[j, i]/vf[j, i] > 1:
-            SD[i] += KE_ni[j, i]
-            SD_count[i] += 1
+        elif vf[j, i] > 0:
+            if vf[j, i] / sf[j, i] >= 1:
+                CVD[i] += KE_ni[j, i]
+                CVD_count[i] += 1
+            else:
+                SD[i] += KE_ni[j, i]
+                SD_count[i] += 1
         else:
-            CVD[i] += KE_ni[j, i]
-            CVD_count[i] += 1
-plt.figure(figsize=(6, 8))
-annualAVD = AVD/AVD_count
-x_valid = np.arange(len(annualAVD))[~np.isnan(annualAVD)]
-y_valid = annualAVD[~np.isnan(annualAVD)]
-interp_func = interpolate.interp1d(x_valid, y_valid, kind='linear', fill_value="extrapolate")
-annualAVD_filled = annualAVD.copy()
-annualAVD_filled[np.isnan(annualAVD)] = interp_func(np.arange(len(annualAVD))[np.isnan(annualAVD)])
+            if abs(vf[j, i]) / sf[j, i] >= 1:
+                AVD[i] += KE_ni[j, i]
+                AVD_count[i] += 1
+            else:
+                SD[i] += KE_ni[j, i]
+                SD_count[i] += 1
+AVD_filled = smooth(AVD)
+annualAVD_filled = smooth(AVD / AVD_count)
+SD_filled = smooth(SD)
+annualSD_filled = smooth(SD / SD_count)
+CVD_filled = smooth(CVD)
+annualCVD_filled = smooth(CVD / CVD_count)
 
-annualSD = SD/SD_count
-x_valid = np.arange(len(annualSD))[~np.isnan(annualSD)]
-y_valid = annualSD[~np.isnan(annualSD)]
-interp_func = interpolate.interp1d(x_valid, y_valid, kind='linear', fill_value="extrapolate")
-annualSD_filled = annualSD.copy()
-annualSD_filled[np.isnan(annualSD)] = interp_func(np.arange(len(annualSD))[np.isnan(annualSD)])
-
-annualCVD = CVD/CVD_count
-x_valid = np.arange(len(annualCVD))[~np.isnan(annualCVD)]
-y_valid = annualCVD[~np.isnan(annualCVD)]
-interp_func = interpolate.interp1d(x_valid, y_valid, kind='linear', fill_value="extrapolate")
-annualCVD_filled = annualCVD.copy()
-annualCVD_filled[np.isnan(annualCVD)] = interp_func(np.arange(len(annualCVD))[np.isnan(annualCVD)])
-
+plt.figure(1, figsize=(6, 8))
 plt.plot(annualAVD_filled, moorDepth[:180])
 plt.plot(annualSD_filled, moorDepth[:180])
 plt.plot(annualCVD_filled, moorDepth[:180])
 plt.legend(['AVD', 'SD', 'CVD'])
-plt.savefig(r'figures\depth distribution of different dominant regions.jpg', dpi=300)
+plt.xlabel('time-averaged $KE_{ni}^{wkb}$ $(J·m^{-3})$')
+plt.ylabel('depth (m)')
+plt.savefig(r'figures\time-averaged KE profile of different dominant regions.jpg', dpi=300)
+plt.show()
+
+plt.figure(2, figsize=(6, 8))
+plt.plot(AVD_filled, moorDepth[:180])
+plt.plot(SD_filled, moorDepth[:180])
+plt.plot(CVD_filled, moorDepth[:180])
+plt.legend(['AVD', 'SD', 'CVD'])
+plt.xlabel('total $KE_{ni}^{wkb}$ $(J·m^{-3})$')
+plt.ylabel('depth (m)')
+plt.savefig(r'figures\total KE profile of different dominant regions.jpg', dpi=300)
 plt.show()
 # for debugging
 print('c')

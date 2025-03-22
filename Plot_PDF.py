@@ -6,7 +6,7 @@ import scipy.stats as stats
 
 
 pycnocline = np.load(r'ReanaData\GLORYS_pycnocline.npy')
-vorticity_moor = np.load(r'ReanaData\AVISO_vorticity4.npy')
+vorticity_moor = np.load(r'ReanaData\AVISO_vorticity1.npy')
 # vorticity_moor = np.load(r'ReanaData\GLORYS_vorticity.npy')[:, 0]
 adcp = np.load('ADCP_uv_ni_wkb.npz')
 KE_ni = adcp['KE_ni_wkb']
@@ -58,7 +58,7 @@ plt.xlabel(r'$\zeta_g/f$')
 plt.ylabel(r'$KE_{NI}^{WKB}$ $(J/m^{3})$')
 plt.grid(True)
 plt.tight_layout()
-# plt.savefig(r'figures\PDF_depth_integrated4.jpg', dpi=300)
+plt.savefig(r'figures\PDF_depth_integrated1.jpg', dpi=300)
 plt.show()
 # # ----------plot the vorticity and KE_ni---------
 # fig = plt.figure(figsize=(10, 8))

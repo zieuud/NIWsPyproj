@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 
 def filter_ni(var, dt, nt, lat, c=1.25, N=4):
-    fi = gsw.f(lat)/(2*np.pi)
+    fi = gsw.f(lat) / (2 * np.pi)
     # Wn = np.array([(1. / c) * fi, c * fi]) * (2 * dt)
     Wn = np.array([0.9 * fi, 1.1 * fi]) * (2 * dt)
     b, a = sig.butter(N, Wn, btype='bandpass', output='ba')
@@ -30,7 +30,7 @@ def filter_ni(var, dt, nt, lat, c=1.25, N=4):
 
 
 def filter_lp(var, dt, nt, lat, c=1.25, N=4):
-    fi = gsw.f(lat)/(2*np.pi)
+    fi = gsw.f(lat) / (2 * np.pi)
     Wn = 0.5 * fi * (2 * dt)
     b, a = sig.butter(N, Wn, btype='lowpass', output='ba')
     var_lp = np.copy(var) * np.nan
@@ -79,45 +79,25 @@ vp = v - v_lp - np.tile(vbar0, (nz, 1)).T
 up_ni = filter_ni(up, dt, nt, lat_moor)
 vp_ni = filter_ni(vp, dt, nt, lat_moor)
 # ---------- calculate the pressure perturbation ----------
-# calculate the epsilon
-# temp_lp = filter_lp(temp, dt, nt, lat_moor)
-# tempp = temp - temp_lp
-tempp = np.zeros((nt, nz))
-for i in range(nt):
-    if i >= 60 and nt - i >= 60:
-        strat, end = i - 60, i+60
-    elif i < 60:
-        start, end = 0, 120
-    else:
-        start, end = 120 + 2 * i - 6650, -1
-    tempp[i, :] = np.squeeze(temp[i, :] - np.nanmean(temp[start:end, :]))
-dtdz = np.diff(temp, axis=1) / np.diff(depth)
-dtdz = np.concatenate((dtdz, dtdz[:, -1].reshape(-1, 1)), axis=1)
-x = -tempp / dtdz
-# x_ni = filter_ni(x, dt, nt, lat_moor)
-# calculate the rho prime
-rhop = ((np.nanmean(sig0, 0) + 1000) / g) * N2 * x
-# rhop_ni = ((sig0 + 1000) / g) * N2 * x_ni
-# calculate the p prime
+rho = sig0 + 1000
+rho_prime = rho - np.nanmean(rho, 0)
+
 p = np.zeros((nt, nz))
-# p_ni = np.zeros((nt, nz))
 for i in range(nz):
-    p[:, i] = np.nansum(rhop[:, :i + 1], 1) * g * dz
-    # p[:, i] = np.trapz(rhop[:, :i+1], -depth[:]) * g
-    # p_ni[:, i] = np.trapz(rhop_ni[:, i:], -depth[i:]) * g
+    p[:, i] = np.nansum(rho_prime[:, :i + 1], 1) * dz * g
 
 pbar = np.nansum(p, 1) / nz
 pbar = -np.tile(pbar, (nz, 1)).T
-pp = pbar + p
-check = np.nansum(pp, 1) * dz
-# pbar_ni = -np.trapz(p_ni, -depth) / -depth[-1]
-# pp_ni = np.tile(pbar_ni, (nz, 1)).T + p_ni
+p_prime = pbar + p
+check = np.nansum(p_prime, 1) * dz
+pp_ni = filter_ni(p_prime, dt, nt, lat_moor)
 
-fx1 = pp * up_ni
-# fx = pp_ni * up_ni
-# fx_di = np.trapz(fx, depth)
-# fy = pp_ni * vp_ni
-# ---------- save energy flux ----------
-# np.savez(r'ReanaData\WOA23_horizontalEnergyFlux.npz', fx=fx, fy=fy)
+fx = p_prime * up_ni
+fy = p_prime * vp_ni
+fx_di = np.nansum(fx, 1) * dz
+fy_di = np.nansum(fy, 1) * dz
 
+# np.savez(r'ReanaData\WOA23_uvp_ni.npz', up_ni=up_ni, vp_ni=vp_ni)
+# np.save(r'ReanaData\WOA23_pp.np', p_prime)
+# np.savez(r'ReanaData\WOA23_horizontalEnergyFlux2.npz', fx=fx, fy=fy, fx_di=fx_di, fy_di=fy_di)
 print('c')

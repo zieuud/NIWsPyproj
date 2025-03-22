@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
 
-adcp = np.load('ADCP_uv_ni.npz')
-KE_ni = adcp['KE_ni']
+adcp = np.load('ADCP_uv_ni_wkb.npz')
+KE_ni = adcp['KE_ni_wkb']
 adcp0 = np.load('ADCP_uv.npz')
 moorDate = adcp0['mtime']
 depth = adcp0['depth']
@@ -20,5 +20,5 @@ cb.set_label(r'$KE_{NI}^{WKB}$ $(J/m^{3})$')
 plt.ylabel('depth (m)')
 line, = plt.plot(dateForPlot, moorPycnocline, label='$H_{ML}$')
 plt.legend(handles=[line])
-plt.savefig(r'figures\KE_ni profile with pycnocline.jpg', dpi=300)
+plt.savefig(r'figures\KE_ni_wkb profile with pycnocline.jpg', dpi=300)
 # plt.show()

@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 def filter_ni(var, dt, nt, lat, c=1.25, N=4):
     fi = gsw.f(lat)/(2*np.pi)
     # Wn = np.array([(1. / c) * fi, c * fi]) * (2 * dt)
-    Wn = np.array([0.9 * fi, 1.1 * fi]) * (2 * dt)
+    Wn = np.array([0.8 * fi, 1.2 * fi]) * (2 * dt)
     b, a = sig.butter(N, Wn, btype='bandpass', output='ba')
     var_ni = np.copy(var) * np.nan
     for k in range(u.shape[-1]):
@@ -19,7 +19,7 @@ def filter_ni(var, dt, nt, lat, c=1.25, N=4):
                 # - get intervals of non-nan data -
                 while np.isnan(tmp[tmin]) and tmin < nt - 2:
                     tmin += 1
-                    tmax = tmin + 1
+                tmax = tmin + 1
                 while ~np.isnan(tmp[tmax]) and tmax < nt - 1:
                     tmax += 1
                 if tmax - tmin > 27:  # The length of the input vector x must be at least pad len, which is 27.
@@ -43,7 +43,7 @@ def filter_lp(var, dt, nt, lat, c=1.25, N=4):
                 # - get intervals of non-nan data -
                 while np.isnan(tmp[tmin]) and tmin < nt - 2:
                     tmin += 1
-                    tmax = tmin + 1
+                tmax = tmin + 1
                 while ~np.isnan(tmp[tmax]) and tmax < nt - 1:
                     tmax += 1
                 if tmax - tmin > 27:  # The length of the input vector x must be at least pad len, which is 27.
@@ -82,10 +82,10 @@ vp_ni = filter_ni(vp, dt, nt, lat_moor)
 # calculate the epsilon
 # temp_lp = filter_lp(temp, dt, nt, lat_moor)
 # tempp = temp - temp_lp
-tempp = np.zeros((nt, nz))
+tempp = np.zeros((nt, nz)) 
 for i in range(nt):
     if i >= 60 and nt - i >= 60:
-        strat, end = i - 60, i+60
+        strat, end = i - 60, i + 60
     elif i < 60:
         start, end = 0, 120
     else:

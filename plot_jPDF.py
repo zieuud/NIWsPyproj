@@ -12,19 +12,20 @@ def smooth(profile):
     profile_filled[np.isnan(profile)] = interp_func(np.arange(len(profile))[np.isnan(profile)])
     return profile_filled
 
+
 # use GLORYS data
-# vorticity_moor_hourly = np.load(r'ReanaData\GLORYS_vorticity.npy')[:, :180]
-# strain_moor_hourly = np.load(r'ReanaData\GLORYS_strain.npy')[:, :180]
+# vorticity_moor_hourly = np.load(r'ReanaData\GLORYS_vorticity.npy')
+# strain_moor_hourly = np.load(r'ReanaData\GLORYS_strain.npy')
 # use AVISO data
 vorticity_moor_hourly = np.load(r'ReanaData\AVISO_vorticity1.npy')
-vorticity_moor_hourly = np.tile(vorticity_moor_hourly, (180, 1)).T
+vorticity_moor_hourly = np.tile(vorticity_moor_hourly, (245, 1)).T
 strain_moor_hourly = np.load(r'ReanaData\AVISO_strain1.npy')
-strain_moor_hourly = np.tile(strain_moor_hourly, (180, 1)).T
+strain_moor_hourly = np.tile(strain_moor_hourly, (245, 1)).T
 
-moorData = np.load(r'ADCP_uv_ni_wkb.npz')
-KE_ni = moorData['KE_ni_wkb'][:, :180]
-adcp0 = np.load(r'ADCP_uv.npz')
-moorDepth = adcp0['depth']
+moorData = np.load(r'MoorData/ADCP_uv_ni_wkb.npz')
+KE_ni = moorData['KE_ni_wkb']
+adcp0 = np.load(r'MoorData/ADCP_uv.npz')
+moorDepth = adcp0['depth_adcp']
 lat_moor = 36.23
 fi = 2 * 7.292e-5 * np.sin(lat_moor/180*np.pi)
 vf = vorticity_moor_hourly / fi
@@ -42,20 +43,23 @@ x_bins = np.linspace(vorticity_flat.min(), vorticity_flat.max(), 30)
 y_bins = np.linspace(strain_flat.min(), strain_flat.max(), 30)
 
 hist, xedges, yedges = np.histogram2d(vorticity_flat, strain_flat, bins=[x_bins, y_bins], weights=KE_flat)
-hist_density = hist / (np.nanmax(hist) - np.nanmin(hist))
-indices1 = (hist_density == 0)
-indices2 = np.isnan(hist_density)
+hist_density = hist / (np.nanmax(hist) - np.nanmin(hist)) * 100
+# indices1 = (hist_density == 0)
+# indices2 = np.isnan(hist_density)
 # plot
 plt.figure(figsize=(12, 6))
 # ----- probability1 -----
-# plt.imshow(hist_density.T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], norm=LogNorm(1e-2, 1))
+plt.imshow(hist_density.T, origin='lower', aspect='auto', cmap='Blues',
+           extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], norm=LogNorm())
 # ----- probability2 -----
-X, Y = np.meshgrid(xedges[:-1], yedges[:-1])
-levels = np.logspace(-5, 1, 6)
-plt.contourf(X, Y, hist_density.T, cmap="Blues", levels=levels, norm=LogNorm())
+# hist[hist == 0] = 1e-3
+# X, Y = np.meshgrid(xedges[:-1], yedges[:-1])
+# levels = [1e-3, 1e-2, 1e-1, 1, 1e1, 1e2]
+# plt.contourf(X, Y, hist_density.T, cmap="Blues", levels=levels, norm=LogNorm())
 # ----- NIKE absolute value -----
 # hist[hist == 0] = np.nan
-# plt.imshow(hist.T, origin='lower', aspect='auto', cmap='Blues', extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], vmin=0, vmax=10e3)
+# plt.imshow(hist.T, origin='lower', aspect='auto', cmap='Blues',
+#            extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], vmin=0, vmax=10e3)
 
 plt.plot([0, 0.3], [0, 0.3], 'k--')
 plt.plot([-0.3, 0], [0.3, 0], 'k--')

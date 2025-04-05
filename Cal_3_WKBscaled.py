@@ -2,24 +2,24 @@ from datetime import datetime, timedelta
 import numpy as np
 from matplotlib import pyplot as plt
 
-N2 = np.load(r'ReanaData/WOA23_N2_grid.npy')
-moorData = np.load('ADCP_uv.npz')
-depth = moorData['depth']
-moorDate = moorData['mtime']
+# N2 = np.load(r'ReanaData/WOA23_N2_grid.npy')
+N2 = np.load(r'ReanaData/WOA23_stratification_adcpGrid.npz')['Nsq_fusion_adcpGrid']
+moorData = np.load('MoorData/ADCP_uv.npz')
+depth = moorData['depth_adcp']
+moorDate = moorData['mtime_adcp']
 dates = [datetime(1, 1, 1) + timedelta(days=m-366) for m in moorDate]
 
-uv_ni = np.load('ADCP_uv_ni.npz')
+uv_ni = np.load('MoorData/ADCP_uv_ni_ByYu.npz')
 u_ni = uv_ni['u_ni']
 v_ni = uv_ni['v_ni']
-KE_ni = uv_ni['KE_ni']
+KE_ni = uv_ni['ke_ni']
 u_ni_wkb = np.copy(u_ni)
 v_ni_wkb = np.copy(v_ni)
 N2_averaged = np.nanmean(N2, 1)
 max_idx = 180  # 最后一个N2非nan位置
-
 for i in range(len(moorDate)):
-    u_ni_wkb[i, :max_idx] = u_ni[i, :max_idx] * np.sqrt(np.sqrt(N2_averaged[i])/np.sqrt(N2[i, :max_idx]))
-    v_ni_wkb[i, :max_idx] = v_ni[i, :max_idx] * np.sqrt(np.sqrt(N2_averaged[i])/np.sqrt(N2[i, :max_idx]))
+    u_ni_wkb[i, :] = u_ni[i, :] * np.sqrt(np.sqrt(N2_averaged[i])/np.sqrt(N2[i, :]))
+    v_ni_wkb[i, :] = v_ni[i, :] * np.sqrt(np.sqrt(N2_averaged[i])/np.sqrt(N2[i, :]))
 KE_ni_wkb = 1/2*1025*(u_ni_wkb**2+v_ni_wkb**2)
 
 # monthly compose
@@ -39,7 +39,8 @@ for i in range(len(moorDate)):
         KE_ni_wkb_monthly[month_last-1, :] = np.nanmean(KE_ni_wkb[idx_start:idx_end, :], 0)
         idx_start = idx_end
         month_last = month_now
-np.savez('ADCP_uv_ni_wkb.npz', u_ni_wkb=u_ni_wkb, v_ni_wkb=v_ni_wkb, KE_ni_wkb=KE_ni_wkb)
+
+np.savez('MoorData/ADCP_uv_ni_wkb_byFusionNsq.npz', u_ni_wkb=u_ni_wkb, v_ni_wkb=v_ni_wkb, KE_ni_wkb=KE_ni_wkb)
 # plt.figure(1, figsize=(4, 5))
 # KE_ni_timeAvg = np.nanmean(KE_ni, 0)
 # KE_ni_wkb_timeAvg = np.nanmean(KE_ni_wkb, 0)
@@ -63,19 +64,17 @@ for i in range(12):
     plt.ylabel('depth (m)')
     plt.title('month{}'.format(i+1))
     # plt.tight_layout()
-plt.savefig(r'figures\compare_wkb_monthly.jpg', dpi=300)
-plt.show()
+# plt.savefig(r'figures\compare_wkb_monthly.jpg', dpi=300)
+# plt.show()
 
 print('cut')
-# [depth_axis1, time_axis1] = np.meshgrid(depth, moorDate)
 # plt.figure(1)
-# plt.pcolor(time_axis1, depth_axis1, KE_ni, cmap='Oranges')
+# plt.pcolormesh(moorDate, depth, KE_ni.T, cmap='Oranges')
 # plt.clim(0, 10)
 # plt.colorbar()
-
-# [depth_axis2, time_axis2] = np.meshgrid(depth, moorDate)
+#
 # plt.figure(2)
-# plt.pcolor(time_axis2, depth_axis2, KE_ni_wkb, cmap='Oranges')
+# plt.pcolormesh(moorDate, depth, KE_ni_wkb.T, cmap='Oranges')
 # plt.colorbar()
 # plt.clim(0, 10)
 # plt.show()

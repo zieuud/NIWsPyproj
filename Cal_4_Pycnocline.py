@@ -14,9 +14,9 @@ temperature = glorys.variables['thetao'][:]
 
 lat_moor = 36.23
 lon_moor = -32.75
-moorData = np.load('ADCP_uv.npz')
-moorDate = moorData['mtime']
-moorDepth = moorData['depth']
+moorData = np.load('MoorData/ADCP_uv.npz')
+moorDate = moorData['mtime_adcp']
+moorDepth = moorData['depth_adcp']
 
 latIdx = 3  # 36.25
 lonIdx = 3  # -32.74992

@@ -8,7 +8,7 @@ iceCurr = nc.Dataset(r'L:\graduation proj\data\MOOR\Data\RREX_ICE_CURR_hourly.nc
 # print(iceCurr.variables)
 latitude = np.array(iceCurr.variables['LATITUDE'][:])
 longitude = np.array(iceCurr.variables['LONGITUDE'][:])
-mtime = np.array(iceCurr.variables['TIME'][:] ) # days since 1950-01-01 00:00:00
+mtime = np.array(iceCurr.variables['TIME'][:])  # days since 1950-01-01 00:00:00
 time = np.tile(mtime, (29, 1)).T
 depthCurr = -np.array(iceCurr.variables['DEPTH'][:])
 u = np.array(iceCurr.variables['UCUR'][:])
@@ -32,7 +32,7 @@ for i in range(temp.shape[0]):
     itp_z = itp.interp1d(depthTemp[i, :], temp[i, :], fill_value=(temp[i, -1], temp[i, 0]), bounds_error=False)
     temp_interp[i, :] = itp_z(depthCurr[i, :])
 
-date = [datetime(1950, 1, 1) + timedelta(days=m) for m in mtime]
+date = [datetime(1950, 1, 1) + timedelta(days=m) for m in mtime]  # from 2015-6-19 to 2017-7-22
 
 # plt.figure()
 # plt.pcolor(time, depthCurr, u, cmap='coolwarm', vmin=-0.4, vmax=0.4)

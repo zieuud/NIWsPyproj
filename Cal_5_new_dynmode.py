@@ -117,30 +117,20 @@ for i in range(11):
 adcp = np.load(r'MoorData/ADCP_uv.npz')
 depthMoor = adcp['depth_adcp']
 nzMoor = len(depthMoor)
-pmodesInterp = np.zeros((6650, nzMoor))
-for i in range(nmodes):
-    itp_t = itp.interp1d(depth, pmodes[i, :], fill_value='extrapolate', bounds_error=False, kind='cubic')
-    pmodesInterp[i, :] = itp_t(depthMoor)
-np.savez(r'ReanaData/WOA23_modes_adcpGrid.npz', pmodes=pmodesInterp, ce=ce)
+timeMoor = adcp['mtime_adcp']
+nt = len(timeMoor)
+# itp_t = itp.interp1d(depth, pmodes, kind='cubic')
+# pmodes_mean = itp_t(depthMoor)
+# np.save(r'ReanaData/WOA23_pmodes.npy', pmodes_mean)
 
-plt.figure(2, figsize=(10, 12))
-for i in range(11):
-    if i >= 6:
-        j = i + 2
-    else:
-        j = i + 1
-    plt.subplot(2, 6, j)
-    if i == 0:
-        plt.plot(Nmean, depth)
-        plt.ylabel('depth (m)')
-        plt.title(r'$N^{2}$')
-        plt.ylim([-2000, 0])
-    else:
-        plt.plot(pmodesInterp[i-1, :].T, depthMoor)
-        plt.yticks([])
-        plt.plot([0, 0], [0, -2000], 'k--')
-        plt.title('mode {}'.format(i-1))
-        plt.ylim([-2000, 0])
-plt.show()
+pmodesMoor = np.zeros((nt, nmodes, nzMoor)) * np.nan
+ceMoor = np.zeros((nt, nmodes)) * np.nan
+for t in range(nt):
+    wmodes, pmodes, ce = dynmodes(Nsq[t, :], depth, nmodes)
+    for m in range(nmodes):
+        itp_t = itp.interp1d(depth, pmodes[m, :], kind='linear')
+        pmodesMoor[t, m, :] = itp_t(depthMoor)
+    ceMoor[t, :] = ce
+np.savez(r'ReanaData/WOA23_modes_adcpGrid.npz', pmodes=pmodesMoor, ce=ceMoor)
 
 

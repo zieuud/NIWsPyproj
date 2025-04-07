@@ -72,8 +72,8 @@ def dynmodes(N2, z, nmodes):
     return wmodes, pmodes, ce
 
 
-# Nsq = np.load(r'ReanaData\WOA23_N2_grid.npy')
-Nsq = np.load(r'ReanaData/WOA23_N2_tsensor_grid.npy')
+Nsq = np.load(r'ReanaData\WOA23_N2_grid.npy')
+# Nsq = np.load(r'ReanaData/WOA23_N2_tsensor_grid.npy')
 adcp = np.load(r'MoorData/ADCP_uv.npz')
 depth = adcp['depth_adcp']
 mtime = adcp['mtime_adcp']

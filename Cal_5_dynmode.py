@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.interpolate as itp
+from datetime import datetime, timedelta
 
 
 def dynmodes(N2, z, nmodes):
@@ -72,46 +74,62 @@ def dynmodes(N2, z, nmodes):
     return wmodes, pmodes, ce
 
 
-Nsq = np.load(r'ReanaData\WOA23_N2_grid.npy')
-# Nsq = np.load(r'ReanaData/WOA23_N2_tsensor_grid.npy')
-adcp = np.load(r'MoorData/ADCP_uv.npz')
-depth = adcp['depth_adcp']
-mtime = adcp['mtime_adcp']
-moorData = np.load(r'MoorData/ADCP_uv_ni_wkb.npz')
-u = moorData['u_ni_wkb']
-v = moorData['v_ni_wkb']
+stratification = np.load(r'ReanaData/WOA23_stratification_tempByWOA.npz')
+Nsq = stratification['Nsq']
+ze = stratification['ze']
 
-nt = len(mtime)
+# ---------- plot the mean vertical structure of modes ----------
 nmodes = 11
-z_idx = 180
-u_mod = np.zeros((nt, nmodes, z_idx))
-v_mod = np.zeros((nt, nmodes, z_idx))
-NIKE = np.zeros((nt, nmodes, z_idx))
-Nmean = np.nanmean(Nsq[:, 10:170], 0)
-wmodes, pmodes, ce = dynmodes(np.squeeze(Nmean), depth[10:170], nmodes)
-# for t in range(nt):
-#     wmodes, pmodes, ce = dynmodes(np.squeeze(Nsq[t, :180]), depth[:180], nmodes)
-#     u_mod_coeff = np.linalg.lstsq(wmodes.T, np.squeeze(u[t, :180]))[0]
-#     u_mod[t, :, :] = np.dot(u[t, :180].reshape(-1, 1), u_mod_coeff.reshape(1, -1)).T
-#     v_mod_coeff = np.linalg.lstsq(wmodes.T, np.squeeze(v[t, :180]))[0]
-#     v_mod[t, :, :] = np.dot(v[t, :180].reshape(-1, 1), v_mod_coeff.reshape(1, -1)).T
-#     NIKE[t, :, :] = 1 / 2 * 1025 * (u_mod[t, :, :] ** 2 + v_mod[t, :, :] ** 2)
-# np.savez(r'ADCP_uv_10modes.npz', u_mod=u_mod, v_mod=v_mod, KE_mod=NIKE)
+Nmean = np.nanmean(Nsq, 0)
+wmodes, pmodes, ce = dynmodes(np.squeeze(Nmean), ze, nmodes)
+adcp = np.load(r'MoorData/ADCP_uv.npz')
+depthMoor = adcp['depth_adcp']
+nzMoor = len(depthMoor)
+timeMoor = adcp['mtime_adcp']
+ntMoor = len(timeMoor)
+dateMoor = [datetime(1, 1, 1) + timedelta(days=m - 367) for m in timeMoor]
+pmodes_mean = np.zeros((nmodes, nzMoor)) * np.nan
+for m in range(nmodes):
+    itp_t = itp.interp1d(ze, pmodes[m, :], fill_value=np.nan, bounds_error=False, kind='cubic')
+    pmodes_mean[m, :] = itp_t(depthMoor)
 
 plt.figure(1, figsize=(10, 12))
-for i in range(12):
-    plt.subplot(2, 6, i+1)
+for i in range(11):
+    if i >= 6:
+        j = i + 2
+    else:
+        j = i + 1
+    plt.subplot(2, 6, j)
     if i == 0:
-        plt.plot(Nmean[:], depth[10:170])
-        plt.ylabel('depth (m)')
+        plt.plot(Nmean, ze)
+        plt.ylabel('Depth (m)')
         plt.title(r'$N^{2}$')
         plt.ylim([-2000, 0])
     else:
-        plt.plot(pmodes[i-1, :].T, depth[10:170])
-        plt.yticks([])
-        plt.plot([0, 0], [depth[0], depth[180]], 'k--')
-        plt.title('mode {}'.format(i-1))
+        if pmodes_mean[i, 0] < 0:
+            pmodes_mean[i, :] = -pmodes_mean[i, :]
+        plt.plot(pmodes_mean[i, :].T, depthMoor)
+        if i == 6:
+            plt.ylabel('Depth (m)')
+        else:
+            plt.yticks([])
+        plt.xticks([])
+        plt.plot([0, 0], [0, -2000], 'k--')
+        plt.title('mode {}'.format(i))
         plt.ylim([-2000, 0])
-# plt.savefig(r'figures\time-averaged mode structure 10.jpg', dpi=300)
-plt.show()
-print('c')
+# plt.savefig(r'figures/vertical_modes_structure.jpg', dpi=300)
+# plt.show()
+
+# ---------- calculate pmodes&ce on moor grid ----------
+pmodesMoor = np.zeros((ntMoor, nmodes, nzMoor)) * np.nan
+ceMoor = np.zeros((ntMoor, nmodes)) * np.nan
+for t in range(ntMoor):
+    t2 = dateMoor[t].month
+    wmodes, pmodes, ce = dynmodes(Nsq[t2 - 1, :], ze, nmodes)
+    for m in range(nmodes):
+        itp_t = itp.interp1d(ze, pmodes[m, :], fill_value=np.nan, bounds_error=False, kind='cubic')
+        pmodesMoor[t, m, :] = itp_t(depthMoor)
+    ceMoor[t, :] = ce
+pmodesMoor[:, 0, :] = 1.  # 正压模态统一为1. 避免插值导致偏离
+pmodesMoor[pmodesMoor[:, :, 0] < 0] = -pmodesMoor[pmodesMoor[:, :, 0] < 0]  # 统一模态结构方向
+np.savez(r'ReanaData/WOA23_pmodes_moorGrid.npz', pmodes=pmodesMoor, ce=ceMoor)

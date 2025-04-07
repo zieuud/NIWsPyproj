@@ -2,101 +2,63 @@ import numpy as np
 import gsw
 import scipy.signal as sig
 from matplotlib import pyplot as plt
-
-
-def filter_ni(var, dt, nt, lat, c=1.25, N=4):
-    fi = gsw.f(lat)/(2*np.pi)
-    # Wn = np.array([(1. / c) * fi, c * fi]) * (2 * dt)
-    Wn = np.array([0.8 * fi, 1.2 * fi]) * (2 * dt)
-    b, a = sig.butter(N, Wn, btype='bandpass', output='ba')
-    var_ni = np.copy(var) * np.nan
-    for k in range(u.shape[-1]):
-        tmp = np.copy(var[:, k])
-        tmin = 0
-        tmax = 1
-        if tmp[~np.isnan(tmp)].shape[0] >= 10:  # filter only if there is at least 10 non-nan values
-            while tmin < nt - 2:
-                # - get intervals of non-nan data -
-                while np.isnan(tmp[tmin]) and tmin < nt - 2:
-                    tmin += 1
-                tmax = tmin + 1
-                while ~np.isnan(tmp[tmax]) and tmax < nt - 1:
-                    tmax += 1
-                if tmax - tmin > 27:  # The length of the input vector x must be at least pad len, which is 27.
-                    var_ni[tmin:tmax, k] = sig.filtfilt(b, a, tmp[tmin:tmax])
-                tmin = tmax + 1
-                tmax = tmin + 1
-    return var_ni
-
-
-def filter_lp(var, dt, nt, lat, c=1.25, N=4):
-    fi = gsw.f(lat)/(2*np.pi)
-    Wn = 0.5 * fi * (2 * dt)
-    b, a = sig.butter(N, Wn, btype='lowpass', output='ba')
-    var_lp = np.copy(var) * np.nan
-    for k in range(u.shape[-1]):
-        tmp = np.copy(var[:, k])
-        tmin = 0
-        tmax = 1
-        if tmp[~np.isnan(tmp)].shape[0] >= 10:  # filter only if there is at least 10 non-nan values
-            while tmin < nt - 2:
-                # - get intervals of non-nan data -
-                while np.isnan(tmp[tmin]) and tmin < nt - 2:
-                    tmin += 1
-                tmax = tmin + 1
-                while ~np.isnan(tmp[tmax]) and tmax < nt - 1:
-                    tmax += 1
-                if tmax - tmin > 27:  # The length of the input vector x must be at least pad len, which is 27.
-                    var_lp[tmin:tmax, k] = sig.filtfilt(b, a, tmp[tmin:tmax], method='gust')
-                tmin = tmax + 1
-                tmax = tmin + 1
-    return var_lp
+import scipy.interpolate as itp
+from func_0_filter import filter_lp, filter_ni, filter_vlp
 
 
 moorData = np.load('ADCP_uv.npz')
-u = np.transpose(moorData['u'])[:, :180]
-v = np.transpose(moorData['v'])[:, :180]
-depth = moorData['depth'][:180]
-moorDate = moorData['mtime']
-temp = np.load(r'ReanaData\WOA23_temp_grid.npy')[:, :180]
-N2 = np.load(r'ReanaData\WOA23_N2_grid.npy')[:, :180]
-sig0 = np.load(r'ReanaData\WOA23_sig0_grid.npy')[:, :180]
+u = np.transpose(moorData['u'])[:, 9:181]
+v = np.transpose(moorData['v'])[:, 9:181]
+depthMoor = moorData['depth'][9:181]
+timeMoor = moorData['mtime']
+nt = len(timeMoor)
+nz = len(depthMoor)
+dt = 3600
+dz = -8.
+
+stratification = np.load(r'ReanaData/WOA23_stratification_tempBySensor.npz')
+temp = stratification['ct'][:, :36]
+sig0 = stratification['sig0'][:, :36]
+dtdz = stratification['dtdz'][:, :35]
+Nsq = stratification['Nsq'][:, :35]
+depthSensor = np.load(r'MoorData/SENSOR_temp.npz')['depth_sensor'][:36]
+ze = stratification['ze'][:35]
 lat_moor = 36.23
 lon_moor = -32.75
 g = 9.81
-nt = len(moorDate)
-nz = len(depth)
-dt = round((moorDate[1] - moorDate[0]) * 24 * 3600)
-dz = depth[1] - depth[0]
+
+# ---------- interpolate on moor depth ----------
+tempMoor = np.empty((nt, nz))
+sig0Moor = np.empty((nt, nz))
+dtdzMoor = np.empty((nt, nz))
+NsqMoor = np.empty((nt, nz))
+for i in range(nt):
+    itp_t = itp.interp1d(depthSensor, temp[i, :])
+    tempMoor[i, :] = itp_t(depthMoor)
+    itp_t = itp.interp1d(depthSensor, sig0[i, :])
+    sig0Moor[i, :] = itp_t(depthMoor)
+    itp_t = itp.interp1d(ze, dtdz[i, :], fill_value=dtdz[i, -1], bounds_error=False)
+    dtdzMoor[i, :] = itp_t(depthMoor)
+    itp_t = itp.interp1d(ze, Nsq[i, :], fill_value=dtdz[i, -1], bounds_error=False)
+    NsqMoor[i, :] = itp_t(depthMoor)
 
 # ---------- calculate the uv perturbation ----------
 u_lp = filter_lp(u, dt, nt, lat_moor)
 v_lp = filter_lp(v, dt, nt, lat_moor)
-ubar0 = np.trapz((u - u_lp), -depth) / -depth[-1]
-vbar0 = np.trapz((v - v_lp), -depth) / -depth[-1]
+ubar0 = np.trapz((u - u_lp), -depthMoor) / -depthMoor[-1]
+vbar0 = np.trapz((v - v_lp), -depthMoor) / -depthMoor[-1]
 up = u - u_lp - np.tile(ubar0, (nz, 1)).T
 vp = v - v_lp - np.tile(vbar0, (nz, 1)).T
 up_ni = filter_ni(up, dt, nt, lat_moor)
 vp_ni = filter_ni(vp, dt, nt, lat_moor)
 # ---------- calculate the pressure perturbation ----------
 # calculate the epsilon
-# temp_lp = filter_lp(temp, dt, nt, lat_moor)
-# tempp = temp - temp_lp
-tempp = np.zeros((nt, nz)) 
-for i in range(nt):
-    if i >= 60 and nt - i >= 60:
-        strat, end = i - 60, i + 60
-    elif i < 60:
-        start, end = 0, 120
-    else:
-        start, end = 120 + 2 * i - 6650, -1
-    tempp[i, :] = np.squeeze(temp[i, :] - np.nanmean(temp[start:end, :]))
-dtdz = np.diff(temp, axis=1) / np.diff(depth)
-dtdz = np.concatenate((dtdz, dtdz[:, -1].reshape(-1, 1)), axis=1)
-x = -tempp / dtdz
+temp_vlp = filter_vlp(tempMoor, dt, nt, lat_moor)
+tempp = tempMoor - temp_vlp
+x = -tempp / dtdzMoor
 # x_ni = filter_ni(x, dt, nt, lat_moor)
 # calculate the rho prime
-rhop = ((np.nanmean(sig0, 0) + 1000) / g) * N2 * x
+rhop = ((np.nanmean(sig0Moor, 0) + 1000) / g) * NsqMoor * x
 # rhop_ni = ((sig0 + 1000) / g) * N2 * x_ni
 # calculate the p prime
 p = np.zeros((nt, nz))

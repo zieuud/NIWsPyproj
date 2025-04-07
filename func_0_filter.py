@@ -20,7 +20,10 @@ def filter_ni(var, dt, nt, lat, N=4):
                 while ~np.isnan(tmp[tmax]) and tmax < nt - 1:
                     tmax += 1
                 if tmax - tmin > 27:  # The length of the input vector x must be at least pad len, which is 27.
-                    var_ni[tmin:tmax, k] = sig.filtfilt(b, a, tmp[tmin:tmax])
+                    if tmax == nt - 1:
+                        var_ni[tmin:, k] = sig.filtfilt(b, a, tmp[tmin:])
+                    else:
+                        var_ni[tmin:tmax, k] = sig.filtfilt(b, a, tmp[tmin:tmax])
                 tmin = tmax + 1
     return var_ni
 
@@ -42,7 +45,10 @@ def filter_lp(var, dt, nt, lat, N=4):
                 while ~np.isnan(tmp[tmax]) and tmax < nt - 1:
                     tmax += 1
                 if tmax - tmin > 27:  # The length of the input vector x must be at least pad len, which is 27.
-                    var_lp[tmin:tmax, k] = sig.filtfilt(b, a, tmp[tmin:tmax], method='gust')
+                    if tmax == nt - 1:
+                        var_lp[tmin:, k] = sig.filtfilt(b, a, tmp[tmin:], method='gust')
+                    else:
+                        var_lp[tmin:tmax, k] = sig.filtfilt(b, a, tmp[tmin:tmax], method='gust')
                 tmin = tmax + 1
     return var_lp
 
@@ -64,6 +70,9 @@ def filter_vlp(var, dt, nt, lat, N=4):
                 while ~np.isnan(tmp[tmax]) and tmax < nt - 1:
                     tmax += 1
                 if tmax - tmin > 27:  # The length of the input vector x must be at least pad len, which is 27.
-                    var_vlp[tmin:tmax, k] = sig.filtfilt(b, a, tmp[tmin:tmax], method='gust')
+                    if tmax == nt - 1:
+                        var_vlp[tmin:, k] = sig.filtfilt(b, a, tmp[tmin:], method='gust')
+                    else:
+                        var_vlp[tmin:tmax, k] = sig.filtfilt(b, a, tmp[tmin:tmax], method='gust')
                 tmin = tmax + 1
     return var_vlp

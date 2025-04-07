@@ -6,7 +6,7 @@ adcp_modes = np.load(r'MoorData/ADCP_uv_ni_10bcmodes.npz')
 KE_mod = adcp_modes['ke_mod']
 adcp0 = np.load('ADCP_uv.npz')
 moorDate = adcp0['mtime']
-dateForPlot = [datetime(1, 1, 1) + timedelta(days=m - 366) for m in moorDate]
+dateForPlot = [datetime(1, 1, 1) + timedelta(days=m - 367) for m in moorDate]
 depth = adcp0['depth']
 # ---------- multi-depth KE modes profile ----------
 # [depth_mesh, moorDate_mesh] = np.meshgrid(depth[:180], dateForPlot)
@@ -31,12 +31,12 @@ depth = adcp0['depth']
 # ---------- time-averaged depth-integrated modes KE profile
 # KE_mod_dita = np.trapz(np.squeeze(np.nanmean(KE_mod, 0)), depth[:])
 dz = depth[1] - depth[0]
-KE_mod_dita = np.nanmean(np.nansum(KE_mod[:3000, :, :], -1), 0)
+KE_mod_dita = np.nanmean(np.nanmean(KE_mod[:, :, :], -1), 0)
 plt.figure(3)
 plt.bar(range(11), KE_mod_dita)
 plt.xticks([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 plt.xlabel('modes')
 plt.ylabel('$KE_{ni}^{wkb}$ $(J·m^{-3})$')
 # plt.savefig(r'figures/time-averaged depth-integrated modes NIKE.jpg', dpi=300)
-plt.savefig(r'figures/check_KE_mdoes_way_c.jpg', dpi=300)
+# plt.savefig(r'figures/check_KE_mdoes_way_c.jpg', dpi=300)
 plt.show()

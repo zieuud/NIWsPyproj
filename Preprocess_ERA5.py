@@ -12,10 +12,10 @@ v10 = ds['v10'].values
 
 lon_idx = np.argmin(np.abs(lon - (-32.75)))
 lat_idx = np.argmin(np.abs(lat - 36.23))
-time_start = np.argwhere(time == np.datetime64('2015-09-28'))[0][0]
-time_end = np.argwhere(time == np.datetime64('2016-07-01T06'))[0][0]
-
-u10Moor = u10[time_start:time_start+6650, lat_idx, lon_idx]
-v10Moor = v10[time_start:time_start+6650, lat_idx, lon_idx]
-np.savez(r'ReanaData/ERA5_wind_moor.npz', u10=u10Moor, v10=v10Moor)
+time_start = 6461
+time_end = 13111
+time_adcp = time[6461:13111]
+u10Moor = u10[time_start:time_end, lat_idx, lon_idx]
+v10Moor = v10[time_start:time_end, lat_idx, lon_idx]
+# np.savez(r'ReanaData/ERA5_wind_moor.npz', u10=u10Moor, v10=v10Moor)
 print('c')

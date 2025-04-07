@@ -43,6 +43,6 @@ for i in range(temp.shape[-1]):
 np.save(r'MoorData\SENSOR_temp_interpolate.npy', temp_interp.T)
 
 # check data date
-date1 = [datetime(1, 1, 1) + timedelta(days=m - 366) for m in mtime_adcp]
-date2 = [datetime(1, 1, 1) + timedelta(days=m - 366) for m in mtime_sensor]
+date1 = [datetime(1, 1, 1) + timedelta(days=m - 367) for m in mtime_adcp]
+date2 = [datetime(1, 1, 1) + timedelta(days=m - 367) for m in mtime_sensor]
 print('c')

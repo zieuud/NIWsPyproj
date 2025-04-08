@@ -1,10 +1,9 @@
 import numpy as np
-import gsw
 import scipy.signal as sig
 
 
 def filter_ni(var, dt, nt, lat, N=4):
-    fi = gsw.f(lat)/(2*np.pi)
+    fi = 2 * 7.292e-5 * np.sin(np.deg2rad(lat)) / (2 * np.pi)
     Wn = np.array([0.8 * fi, 1.2 * fi]) * (2 * dt)
     b, a = sig.butter(N, Wn, btype='bandpass', output='ba')
     var_ni = np.copy(var) * np.nan
@@ -29,7 +28,7 @@ def filter_ni(var, dt, nt, lat, N=4):
 
 
 def filter_lp(var, dt, nt, lat, N=4):
-    fi = gsw.f(lat)/(2*np.pi)
+    fi = 2 * 7.292e-5 * np.sin(np.deg2rad(lat)) / (2 * np.pi)
     Wn = 0.5 * fi * (2 * dt)
     b, a = sig.butter(N, Wn, btype='lowpass', output='ba')
     var_lp = np.copy(var) * np.nan
@@ -54,7 +53,7 @@ def filter_lp(var, dt, nt, lat, N=4):
 
 
 def filter_vlp(var, dt, nt, lat, N=4):
-    fi = gsw.f(lat)/(2*np.pi)
+    fi = 2 * 7.292e-5 * np.sin(np.deg2rad(lat)) / (2 * np.pi)
     Wn = 0.1 * fi * (2 * dt)
     b, a = sig.butter(N, Wn, btype='lowpass', output='ba')
     var_vlp = np.copy(var) * np.nan

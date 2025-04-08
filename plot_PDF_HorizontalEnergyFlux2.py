@@ -10,7 +10,7 @@ from matplotlib.colors import LogNorm
 # pp = np.load(r'ReanaData\WOA23_pp.npy')
 # fx = pp * up_ni_wkb
 # fy = pp * vp_ni_wkb
-flux = np.load(r'ReanaData/WOA23_new_horizontalEnergyFlux.npz')
+flux = np.load(r'MoorData/EnergyFlux.npz')
 fx = flux['fx']
 fy = flux['fy']
 nt, nz = np.shape(fx)

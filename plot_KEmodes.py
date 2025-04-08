@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 
 adcp_modes = np.load(r'MoorData/ADCP_uv_ni_10bcmodes.npz')
 KE_mod = adcp_modes['ke_mod']
-adcp0 = np.load('ADCP_uv.npz')
-moorDate = adcp0['mtime']
+adcp0 = np.load('MoorData/ADCP_uv.npz')
+moorDate = adcp0['mtime_adcp']
 dateForPlot = [datetime(1, 1, 1) + timedelta(days=m - 367) for m in moorDate]
-depth = adcp0['depth']
+depth = adcp0['depth_adcp']
 # ---------- multi-depth KE modes profile ----------
 # [depth_mesh, moorDate_mesh] = np.meshgrid(depth[:180], dateForPlot)
 # plt.figure(1, figsize=(10, 10))

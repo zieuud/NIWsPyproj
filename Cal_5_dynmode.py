@@ -92,6 +92,7 @@ pmodes_mean = np.zeros((nmodes, nzMoor)) * np.nan
 for m in range(nmodes):
     itp_t = itp.interp1d(ze, pmodes[m, :], fill_value=np.nan, bounds_error=False, kind='cubic')
     pmodes_mean[m, :] = itp_t(depthMoor)
+np.savez(r'ReanaData/WOA23_pmodes_mean.npz', pmodes=pmodes_mean, Nsq=Nmean, ze=ze)
 
 plt.figure(1, figsize=(10, 12))
 for i in range(11):

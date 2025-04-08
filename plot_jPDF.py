@@ -70,7 +70,7 @@ plt.ylim(0, 0.1)
 plt.xlabel(r'$\zeta/f$')
 plt.ylabel(r'$\sigma/f$')
 plt.title('jPDF')
-# plt.savefig(r'figures\jPDF_AVISO.jpg', dpi=300)
+plt.savefig(r'figures\fig_10_jPDF.jpg', dpi=300, bbox_inches='tight')
 plt.show()
 # ---------- plot depth distribution of different dominant regions ----------
 nz = len(moorDepth[:180])

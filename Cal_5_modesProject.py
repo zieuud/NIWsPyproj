@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from func_1_dynmodes import dynmodes
+from sklearn.linear_model import Ridge
 
 
 maxIdx = 181
@@ -35,22 +36,41 @@ fluxParams = np.load(r'MoorData/EnergyFlux.npz')
 up = fluxParams['up']
 vp = fluxParams['vp']
 pp = fluxParams['pp']
+
 depthFlux = depth[9:]
 nzFlux = len(depthFlux)
 pmodesFlux = pmodes[:, :, 9:maxIdx]
+# plt.pcolormesh(range(6650), depthFlux, pp.T, vmin=-100, vmax=100, cmap='seismic')
+# plt.colorbar()
+# plt.show()
 
-up_mod = np.zeros((nt, nmodes, nzFlux))
-vp_mod = np.zeros((nt, nmodes, nzFlux))
-pp_mod = np.zeros((nt, nmodes, nzFlux))
+up_mod = np.zeros((nt, nmodes, nzFlux)) * np.nan
+vp_mod = np.zeros((nt, nmodes, nzFlux)) * np.nan
+pp_mod = np.zeros((nt, nmodes, nzFlux)) * np.nan
 
 for t in range(nt):
     valid_indices = np.where(~np.isnan(up[t, :]))[0]
-    up_mod_coeff = np.linalg.lstsq(pmodes[t, :, valid_indices], up[t, valid_indices], rcond=None)[0]
-    up_mod[t, :, valid_indices] = up_mod_coeff * pmodes[t, :, valid_indices]
-    vp_mod_coeff = np.linalg.lstsq(pmodes[t, :, valid_indices], vp[t, valid_indices], rcond=None)[0]
-    vp_mod[t, :, valid_indices] = vp_mod_coeff * pmodes[t, :, valid_indices]
-    pp_mod_coeff = np.linalg.lstsq(pmodes[t, :, valid_indices], pp[t, valid_indices], rcond=None)[0]
-    pp_mod[t, :, valid_indices] = pp_mod_coeff * pmodes[t, :, valid_indices]
+    up_mod_coeff = np.linalg.lstsq(pmodesFlux[t, :, valid_indices], up[t, valid_indices], rcond=None)[0]
+    up_mod[t, :, valid_indices] = up_mod_coeff * pmodesFlux[t, :, valid_indices]
+    vp_mod_coeff = np.linalg.lstsq(pmodesFlux[t, :, valid_indices], vp[t, valid_indices], rcond=None)[0]
+    vp_mod[t, :, valid_indices] = vp_mod_coeff * pmodesFlux[t, :, valid_indices]
+    pp_mod_coeff = np.linalg.lstsq(pmodesFlux[t, :, valid_indices], pp[t, valid_indices], rcond=None)[0]
+    pp_mod[t, :, valid_indices] = pp_mod_coeff * pmodesFlux[t, :, valid_indices]
+    print('c')
+
+
+# for t in range(nt):
+#     valid_indices = np.where(~np.isnan(up[t, :]))[0]
+#     ridge = Ridge(alpha=0.1)
+#     ridge.fit(pmodesFlux[t, :, valid_indices], up[t, valid_indices])
+#     up_mod_coeff = ridge.coef_
+#     up_mod[t, :, valid_indices] = up_mod_coeff * pmodesFlux[t, :, valid_indices]
+#     ridge.fit(pmodesFlux[t, :, valid_indices], vp[t, valid_indices])
+#     vp_mod_coeff = ridge.coef_
+#     vp_mod[t, :, valid_indices] = vp_mod_coeff * pmodesFlux[t, :, valid_indices]
+#     ridge.fit(pmodesFlux[t, :, valid_indices], pp[t, valid_indices])
+#     pp_mod_coeff = ridge.coef_
+#     pp_mod[t, :, valid_indices] = pp_mod_coeff * pmodesFlux[t, :, valid_indices]
 
 np.savez(r'MoorData/EnergyFlux_10bcmodes.npz', up_mod=up_mod, vp_mod=vp_mod, pp_mod=pp_mod)
 print('c')

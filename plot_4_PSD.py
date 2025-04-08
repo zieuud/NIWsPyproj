@@ -122,7 +122,7 @@ plt.text(f, 1., 'f', fontsize=16)
 plt.plot([1/12.42/3600., 1/12.42/3600.], [0, -2000], 'k--')
 plt.text(1/12.42/3600., 1., '$M_{2}$', fontsize=16)
 
-# plt.savefig('figures/PSD.jpg', dpi=300)
+plt.savefig('figures/fig_4_PSD.jpg', dpi=300, bbox_inches='tight')
 plt.show()
 
 

@@ -39,9 +39,9 @@ windWork_ni_slab = u_slab * tao_x_ni + v_slab * tao_y_ni
 windWork_ni_obs_cum = 3600 * np.nancumsum(windWork_ni_obs) / 1000
 windWork_ni_slab_cum = 3600 * np.nancumsum(windWork_ni_slab) / 1000
 
-np.savez(r'ReanaData/ERA5_tao_ni.npz', tao_x_ni=tao_x_ni, tao_y_ni=tao_y_ni)
-np.savez(r'ReanaData/ERA5_windWork.npz', windWork_ni_obs=windWork_ni_obs, windWork_ni_slab=windWork_ni_slab)
-np.savez(r'ReanaData/ERA5_windWork_cum.npz', windWork_ni_obs_cum=windWork_ni_obs_cum, windWork_ni_slab_cum=windWork_ni_slab_cum)
+# np.savez(r'ReanaData/ERA5_tao_ni.npz', tao_x_ni=tao_x_ni, tao_y_ni=tao_y_ni)
+# np.savez(r'ReanaData/ERA5_windWork.npz', windWork_ni_obs=windWork_ni_obs, windWork_ni_slab=windWork_ni_slab)
+# np.savez(r'ReanaData/ERA5_windWork_cum.npz', windWork_ni_obs_cum=windWork_ni_obs_cum, windWork_ni_slab_cum=windWork_ni_slab_cum)
 
 # for checking
 plt.figure(1)

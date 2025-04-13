@@ -49,7 +49,7 @@ for i in range(nt):
         idx_start = idx_end
         month_last = month_now
 
-np.savez('MoorData/ADCP_uv_ni_wkb.npz', u_ni_wkb=u_ni_wkb, v_ni_wkb=v_ni_wkb, KE_ni_wkb=KE_ni_wkb)
+# np.savez('MoorData/ADCP_uv_ni_wkb.npz', u_ni_wkb=u_ni_wkb, v_ni_wkb=v_ni_wkb, KE_ni_wkb=KE_ni_wkb)
 
 plt.figure(1, figsize=(10, 10))
 fignums = 0

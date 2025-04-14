@@ -17,13 +17,16 @@ def cal_confidence(data):
 data1 = np.load(r'MoorData/ADCP_uv_ni_10bcmodes.npz')
 ke_mod = data1['ke_mod']
 ke_mod_data = np.nanmean(np.nanmean(ke_mod, -1), 0)
-data2 = np.load(r'MoorData/EnergyFlux_10bcmodes.npz')
-up_mod = data2['up_mod']
-vp_mod = data2['vp_mod']
-pp = np.load(r'MoorData/EnergyFlux.npz')['pp']
-pp_mod = pp.reshape(6650, 1, -1)
-fx_mod = pp_mod * up_mod
-fy_mod = pp_mod * vp_mod
+# data2 = np.load(r'MoorData/EnergyFlux_10bcmodes.npz')
+# up_mod = data2['up_mod']
+# vp_mod = data2['vp_mod']
+# pp = np.load(r'MoorData/EnergyFlux.npz')['pp']
+# pp_mod = pp.reshape(6650, 1, -1)
+# fx_mod = pp_mod * up_mod
+# fy_mod = pp_mod * vp_mod
+data2 = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_Ridge.npz')
+fx_mod = data2['fx_mod']
+fy_mod = data2['fy_mod']
 f_mod = np.sqrt(fx_mod ** 2 + fy_mod ** 2)
 f_mod_data = np.nanmean(np.nansum(f_mod, -1), 0)
 
@@ -32,7 +35,7 @@ for i in range(11):
     ci_ke[i] = cal_confidence(np.nanmean(ke_mod, -1))
 ci_f = np.empty(11)
 for i in range(11):
-    ci_f[i] = cal_confidence(np.nanmean(f_mod, -1))
+    ci_f[i] = cal_confidence(np.nansum(f_mod, -1))
 
 plt.figure(1, figsize=(10, 8))
 plt.subplot(2, 1, 1)

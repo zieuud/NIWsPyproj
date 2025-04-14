@@ -18,12 +18,13 @@ def smooth(profile):
 # strain_moor_hourly = np.load(r'ReanaData\GLORYS_strain.npy')
 # use AVISO data
 vorticity_moor_hourly = np.load(r'ReanaData\AVISO_vorticity1.npy')
-vorticity_moor_hourly = np.tile(vorticity_moor_hourly, (245, 1)).T
+# vorticity_moor_hourly = np.tile(vorticity_moor_hourly, (245, 1)).T
 strain_moor_hourly = np.load(r'ReanaData\AVISO_strain1.npy')
-strain_moor_hourly = np.tile(strain_moor_hourly, (245, 1)).T
+# strain_moor_hourly = np.tile(strain_moor_hourly, (245, 1)).T
 
 moorData = np.load(r'MoorData/ADCP_uv_ni_wkb.npz')
 KE_ni = moorData['KE_ni_wkb']
+KE_ni_dinteg = np.nansum(KE_ni * 8, 1)
 adcp0 = np.load(r'MoorData/ADCP_uv.npz')
 moorDepth = adcp0['depth_adcp']
 lat_moor = 36.23
@@ -33,7 +34,7 @@ sf = strain_moor_hourly / fi
 # ---------- plot jPDF ----------
 vorticity_flat = vf.flatten()
 strain_flat = sf.flatten()
-KE_flat = KE_ni.flatten()
+KE_flat = KE_ni_dinteg.flatten()
 indices = np.isnan(KE_flat)
 KE_flat = KE_flat[~indices]
 vorticity_flat = vorticity_flat[~indices]
@@ -46,6 +47,7 @@ hist, xedges, yedges = np.histogram2d(vorticity_flat, strain_flat, bins=[x_bins,
 hist_density = hist / (np.nanmax(hist) - np.nanmin(hist)) * 100
 # indices1 = (hist_density == 0)
 # indices2 = np.isnan(hist_density)
+# hist_density[indices1] = 1e-4
 # plot
 plt.figure(figsize=(12, 6))
 # ----- probability1 -----
@@ -65,12 +67,12 @@ plt.plot([0, 0.3], [0, 0.3], 'k--')
 plt.plot([-0.3, 0], [0.3, 0], 'k--')
 # ---------- beautify ----------
 plt.colorbar(label='PDF (%)')
-plt.xlim(-0.1, 0.1)
-plt.ylim(0, 0.1)
+plt.xlim(-0.2, 0.2)
+plt.ylim(0, 0.2)
 plt.xlabel(r'$\zeta/f$')
 plt.ylabel(r'$\sigma/f$')
 plt.title('jPDF')
-plt.savefig(r'figures\fig_10_jPDF.jpg', dpi=300, bbox_inches='tight')
+# plt.savefig(r'figures\fig_10_jPDF.jpg', dpi=300, bbox_inches='tight')
 plt.show()
 # ---------- plot depth distribution of different dominant regions ----------
 nz = len(moorDepth[:180])

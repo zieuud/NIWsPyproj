@@ -13,16 +13,19 @@ KE_ni = adcp['KE_ni_wkb']
 adcp0 = np.load('MoorData/ADCP_uv.npz')
 moorDate = adcp0['mtime_adcp']
 depth = adcp0['depth_adcp']
+nz = len(depth)
 lat_moor = 36.23
-fi = 2 * 7.292e-5 * np.sin(lat_moor/180*np.pi)
+fi = 2 * 7.292e-5 * np.sin(np.deg2rad(lat_moor))
 vf = vorticity_moor / fi
 # ---------- plot the PDF ----------
-KE_ni_dinteg = np.zeros(np.size(KE_ni, 0))
-for idx in range(np.size(KE_ni, 0)):
-    ml_idx = np.argmin(abs(-pycnocline[idx] - depth))
-    KE_ni_under_ml = KE_ni[idx, ml_idx:]
-    depth_under_ml = -depth[ml_idx:]
-    KE_ni_dinteg[idx] = np.trapz(KE_ni_under_ml[~np.isnan(KE_ni_under_ml)], depth_under_ml[~np.isnan(KE_ni_under_ml)]) / 1000
+# KE_ni_dinteg = np.zeros(np.size(KE_ni, 0))
+# for idx in range(np.size(KE_ni, 0)):
+#     ml_idx = np.argmin(abs(-pycnocline[idx] - depth))
+#     KE_ni_under_ml = KE_ni[idx, ml_idx:]
+#     depth_under_ml = -depth[ml_idx:]
+#     KE_ni_dinteg[idx] = np.trapz(KE_ni_under_ml[~np.isnan(KE_ni_under_ml)], depth_under_ml[~np.isnan(KE_ni_under_ml)]) / 1000
+# KE_ni_flat = KE_ni_dinteg.flatten()
+KE_ni_dinteg = np.nansum(KE_ni * 8, 1) / 1000
 KE_ni_flat = KE_ni_dinteg.flatten()
 # delete nan value
 vf_flat = vf[~np.isnan(KE_ni_flat)]
@@ -52,12 +55,12 @@ plt.text(xedges[1], yedges[-5], 'r={:.2f}'.format(r_value))
 # ---------- beautify ----------
 cb = plt.colorbar()
 cb.set_label('PDF (%)')
-plt.xlim(-0.1, 0.1)
+plt.xlim(-0.2, 0.2)
 # plt.ylim(0, 35)
 plt.xlabel(r'$\zeta_g/f$')
-plt.ylabel(r'$KE_{NI}^{WKB}$ $(J/m^{3})$')
+plt.ylabel(r'$KE_{NI}^{WKB}$ $(kJ/m^{3})$')
 plt.grid(True)
-plt.savefig(r'figures\fig_9_1_PDF.jpg', dpi=300, bbox_inches='tight')
+# plt.savefig(r'figures\fig_9_1_PDF.jpg', dpi=300, bbox_inches='tight')
 plt.show()
 # # ----------plot the vorticity and KE_ni---------
 # fig = plt.figure(figsize=(10, 8))

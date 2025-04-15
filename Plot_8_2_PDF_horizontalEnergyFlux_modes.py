@@ -16,8 +16,8 @@ from matplotlib.colors import LogNorm
 # fy_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj.npz')['fy_mod']
 # fx_mod = np.load(r'MoorData/EnergyFlux_modes.npz')['fx_ni_mod']
 # fy_mod = np.load(r'MoorData/EnergyFlux_modes.npz')['fy_ni_mod']
-fx_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj.npz')['fx_mod']
-fy_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj.npz')['fy_mod']
+fx_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_norm.npz')['fx_mod']
+fy_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_norm.npz')['fy_mod']
 fx_mod_ta = np.nansum(fx_mod, -1)
 fy_mod_ta = np.nansum(fy_mod, -1)
 nt, nmodes, nz = np.shape(fx_mod)
@@ -28,10 +28,10 @@ dt = 3600
 plt.figure(figsize=(12, 12))
 for i in range(1, 5):
     plt.subplot(2, 2, i)
-    fx = fx_mod[:, i, :].flatten()
-    fy = fy_mod[:, i, :].flatten()
-    # fx = fx_mod_ta[:, i].flatten()
-    # fy = fy_mod_ta[:, i].flatten()
+    # fx = fx_mod[:, i, :].flatten()
+    # fy = fy_mod[:, i, :].flatten()
+    fx = fx_mod_ta[:, i].flatten()
+    fy = fy_mod_ta[:, i].flatten()
     fx = fx[~np.isnan(fx)]
     fy = fy[~np.isnan(fy)]
     # transfer to angle and magnitude

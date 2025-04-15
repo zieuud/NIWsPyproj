@@ -24,12 +24,19 @@ ke_mod_data = np.nanmean(np.nanmean(ke_mod, -1), 0)
 # pp_mod = pp.reshape(6650, 1, -1)
 # fx_mod = pp_mod * up_mod
 # fy_mod = pp_mod * vp_mod
-data2 = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_Ridge.npz')
+data2 = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj.npz')
 fx_mod = data2['fx_mod']
 fy_mod = data2['fy_mod']
 f_mod = np.sqrt(fx_mod ** 2 + fy_mod ** 2)
 f_mod_data = np.nanmean(np.nansum(f_mod, -1), 0)
-
+data3 = np.load(r'MoorData/ADCP_uv.npz')
+depthFlux = data3['depth_adcp'][:181]
+# for checking
+# f_mod[f_mod > 1e3] = np.nan
+f_mod[f_mod == 0] = np.nan
+plt.pcolormesh(range(6650), depthFlux, f_mod[:, 2, :].T, vmin=0, vmax=100)
+plt.colorbar()
+plt.show()
 ci_ke = np.empty(11)
 for i in range(11):
     ci_ke[i] = cal_confidence(np.nanmean(ke_mod, -1))
@@ -47,7 +54,7 @@ plt.ylabel('$KE_{NI}^{WKB}$ $J/m^{3}$')
 plt.subplot(2, 1, 2)
 plt.bar(range(11), f_mod_data, color='#A6B1B7', yerr=ci_f, capsize=6, error_kw=dict(ecolor='#444444', linewidth=1.5))
 plt.xticks(range(11))
-plt.ylim([0, 1200])
+# plt.ylim([0, 1200])
 plt.xlabel('Modes')
 plt.ylabel('$F_{NI}$ $W/m$')
 

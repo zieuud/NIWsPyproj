@@ -4,11 +4,13 @@ import scipy.interpolate as itp
 from func_0_filter import filter_lp, filter_ni, filter_vlp
 
 
+uv_mod = np.load(r'MoorData/ADCP_uv_ni_10bcmodes.npz')
+u_mod = uv_mod['u_mod']
+v_mod = uv_mod['v_mod']
+
 endIdx = 181  # 181
 # load current data
 moorData = np.load('MoorData/ADCP_uv.npz')
-u = np.transpose(moorData['u'].T)
-v = np.transpose(moorData['v'].T)
 depthMoor = moorData['depth_adcp']
 timeMoor = moorData['mtime_adcp']
 nt = len(timeMoor)
@@ -16,6 +18,7 @@ nzMoor = len(depthMoor)
 dt = 3600
 dz = 8.
 H = -depthMoor[-1]
+
 depthFlux = depthMoor[9:endIdx]
 nzFlux = len(depthFlux)
 # load stratification data
@@ -50,36 +53,8 @@ for i in range(nt):
     NsqMoor[i, :] = itp_t(depthFlux)
 
 # ---------- calculate the uv perturbation ----------
-u_lp = filter_lp(u, dt, nt, lat_moor)
-v_lp = filter_lp(v, dt, nt, lat_moor)
-up = u - u_lp
-vp = v - v_lp
-
-up_mod = np.empty((nt, nmodes, nzMoor)) * np.nan
-vp_mod = np.empty((nt, nmodes, nzMoor)) * np.nan
-for t in range(nt):
-    valid_indices = np.where(~np.isnan(up[t, :]))[0]
-    up_mod_coeff = np.linalg.lstsq(pmodes[:, valid_indices].T, up[t, valid_indices], rcond=None)[0]
-    up_mod[t, :, valid_indices] = (up_mod_coeff.reshape(nmodes, 1) * pmodes[:, valid_indices]).T
-    vp_mod_coeff = np.linalg.lstsq(pmodes[:, valid_indices].T, vp[t, valid_indices], rcond=None)[0]
-    vp_mod[t, :, valid_indices] = (vp_mod_coeff.reshape(nmodes, 1) * pmodes[:, valid_indices]).T
-
-up_mod_ni = np.empty((nt, nmodes-1, nzMoor)) * np.nan
-vp_mod_ni = np.empty((nt, nmodes-1, nzMoor)) * np.nan
-for m in range(nmodes-1):
-    up_mod_ni[:, m, :] = filter_ni(np.squeeze(up_mod[:, m + 1, :]), dt, nt, lat_moor)
-    vp_mod_ni[:, m, :] = filter_ni(np.squeeze(vp_mod[:, m + 1, :]), dt, nt, lat_moor)
-
-ke_ni_mod = 1/2 * 1025 * (up_mod_ni ** 2 + vp_mod_ni ** 2)
-for m in range(1, 6):
-    plt.subplot(5, 1, m)
-    plt.pcolormesh(timeMoor, depthMoor, ke_ni_mod[:, m, :].T, vmin=0, vmax=15)
-    plt.colorbar()
-plt.show()
-
-up_mod_ni = up_mod_ni[:, :, 9:endIdx]
-vp_mod_ni = vp_mod_ni[:, :, 9:endIdx]
-
+up_mod_ni = u_mod[:, 1:, 9:endIdx]
+vp_mod_ni = v_mod[:, 1:, 9:endIdx]
 
 # ---------- calculate the pressure perturbation ----------
 # calculate the epsilon
@@ -106,5 +81,11 @@ pp_ni_mod = np.transpose(np.tile(pp_ni, (nmodes - 1, 1, 1)), (1, 0, 2))
 fx_ni_mod = pp_ni_mod * up_mod_ni
 fy_ni_mod = pp_ni_mod * vp_mod_ni
 
-np.savez(r'MoorData/EnergyFlux_modes_check.npz', fx_ni_mod=fx_ni_mod, fy_ni_mod=fy_ni_mod)
-print('c')
+fh_ni_mod = np.sqrt(fx_ni_mod ** 2 + fy_ni_mod ** 2)
+
+for i in range(6):
+    plt.subplot(6, 1, i+1)
+    plt.pcolormesh(timeMoor, depthFlux, fh_ni_mod[:, i, :].T, vmin=0, vmax=100)
+    plt.colorbar()
+plt.show()
+

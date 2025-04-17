@@ -9,8 +9,8 @@ depth1 = adcp['depth_adcp'][9:endIdx1]
 depth2 = adcp['depth_adcp'][9:endIdx2]
 depth3 = adcp['depth_adcp'][:endIdx1]
 
-fx_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj.npz')['fx_mod']
-fy_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj.npz')['fy_mod']
+fx_mod = np.load(r'MoorData/EnergyFlux_modes.npz')['fx_ni_mod']
+fy_mod = np.load(r'MoorData/EnergyFlux_modes.npz')['fy_ni_mod']
 fh_mod = np.sqrt(fx_mod ** 2 + fy_mod ** 2)
 
 fx = np.load(r'MoorData/EnergyFlux.npz')['fx']

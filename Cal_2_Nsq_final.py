@@ -4,10 +4,12 @@ import gsw
 from datetime import datetime, timedelta
 import scipy.interpolate as itp
 import matplotlib.pyplot as plt
-from astropy.time import Time
 
 
 def cal_stratification(nt, nz, z, s, t, lat, lon):
+    if nt == 1:
+        s = s.reshape(1, -1)
+        t = t.reshape(1, -1)
     ct = np.zeros((nt, nz))
     sig0 = np.zeros((nt, nz))
     N2 = np.zeros((nt, nz - 1))
@@ -22,20 +24,33 @@ def cal_stratification(nt, nz, z, s, t, lat, lon):
         sig0[m, :] = gsw.sigma0(SA, CT)
         dtdz[m, :] = np.diff(CT) / np.diff(z)
     N2[N2 < 0] = 1e-8
-    return ct, sig0, N2, dtdz, ze
+    return np.squeeze(ct), np.squeeze(sig0), np.squeeze(N2), np.squeeze(dtdz), ze
 
 
 lat_moor = 36.23
 lon_moor = -32.75
 # ---------- using WOA23 data ----------
+# monthly data
 woa23 = np.load(r'ReanaData/WOA23_st.npz')
 tempWOA = woa23['t']
 saltWOA = woa23['s']
 depthWOA = -woa23['z']
-ctWOA, sig0WOA, NsqWOA, dtdzWOA, zeWOA = (
-    cal_stratification(12, 57, depthWOA, saltWOA, tempWOA, lat_moor, lon_moor))
-np.savez(r'ReanaData/WOA23_stratification_tempByWOA.npz',
-         ct=ctWOA, sig0=sig0WOA, Nsq=NsqWOA, dtdz=dtdzWOA, ze=zeWOA)
+# ctWOA, sig0WOA, NsqWOA, dtdzWOA, zeWOA = (
+#     cal_stratification(12, 57, depthWOA, saltWOA, tempWOA, lat_moor, lon_moor))
+# np.savez(r'ReanaData/WOA23_stratification_tempByWOA.npz',
+#          ct=ctWOA, sig0=sig0WOA, Nsq=NsqWOA, dtdz=dtdzWOA, ze=zeWOA)
+# yearly data
+# woa23Yearly = np.load(r'ReanaData/WOA23_st_yearly.npz')
+# tempYearly = woa23Yearly['t']
+# saltYearly = woa23Yearly['s']
+# depthYearly = -woa23Yearly['z']
+# nz = len(depthYearly)
+# ctYearly, sig0Yearly, NsqYearly, dtdzYearly, zeYearly = (
+#     cal_stratification(1, nz, depthYearly, saltYearly, tempYearly, lat_moor, lon_moor))
+# plt.plot(NsqYearly, zeYearly)
+# plt.show()
+# np.savez(r'ReanaData/WOA23_stratification_tempByWOA_yearly.npz',
+#          ct=ctYearly, sig0=sig0Yearly, Nsq=NsqYearly, dtdz=dtdzYearly, ze=zeYearly)
 # ---------- using sensor data ----------
 sensor = np.load(r'MoorData/SENSOR_temp.npz')
 depthSensor = sensor['depth_sensor']
@@ -54,6 +69,10 @@ for i in range(nt):
     saltSensor[i, :] = saltGrid[m - 1, :]
 ctSensor, sig0Sensor, NsqSensor, dtdzSensor, zeSensor = (
     cal_stratification(nt, nz, depthSensor, saltSensor, tempSensor, lat_moor, lon_moor))
-np.savez(r'ReanaData/WOA23_stratification_tempBySensor.npz',
-         ct=ctSensor, sig0=sig0Sensor, Nsq=NsqSensor, dtdz=dtdzSensor, ze=zeSensor)
+
+plt.pcolormesh(range(6650), zeSensor, NsqSensor.T)
+plt.colorbar()
+plt.show()
+# np.savez(r'ReanaData/WOA23_stratification_tempBySensor.npz',
+#          ct=ctSensor, sig0=sig0Sensor, Nsq=NsqSensor, dtdz=dtdzSensor, ze=zeSensor)
 print('c')

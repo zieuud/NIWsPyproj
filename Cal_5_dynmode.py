@@ -82,19 +82,18 @@ timeMoor = adcp['mtime_adcp']
 ntMoor = len(timeMoor)
 dateMoor = [datetime(1, 1, 1) + timedelta(days=m - 367) for m in timeMoor]
 
-stratification = np.load(r'ReanaData/WOA23_stratification_tempByWOA.npz')
+stratification = np.load(r'ReanaData/WOA23_stratification_tempByWOA_yearly.npz')
 Nsq = stratification['Nsq']
 ze = stratification['ze']
-# ---------- calculate the mean vertical structure of modes ----------
-# Nmean = np.nanmean(Nsq, 0)
-# wmodes, pmodes, ce = dynmodes(np.squeeze(Nmean), ze, nmodes)
-# pmodes_mean = np.zeros((nmodes, nzMoor)) * np.nan
-# for m in range(nmodes):
-#     itp_t = itp.interp1d(ze, pmodes[m, :], fill_value=np.nan, bounds_error=False, kind='cubic')
-#     pmodes_mean[m, :] = itp_t(depthMoor)
-# np.savez(r'ReanaData/WOA23_pmodes_mean.npz', pmodes=pmodes_mean, Nsq=Nmean, ze=ze)
+# ---------- calculate pmodes&ce on moor grid with WOA23 yearly temperature data ----------
+wmodes, pmodes, ce = dynmodes(Nsq, ze, nmodes)
+pmodesMoor = np.zeros((nmodes, nzMoor)) * np.nan
+for m in range(nmodes):
+    itp_t = itp.interp1d(ze, pmodes[m, :], fill_value=np.nan, bounds_error=False, kind='cubic')
+    pmodesMoor[m, :] = itp_t(depthMoor)
+np.savez(r'ReanaData/WOA23_pmodes_moorGrid_yearly.npz', pmodes=pmodesMoor, Nsq=Nsq, ze=ze)
 
-# ---------- calculate pmodes&ce on moor grid with WOA23 temperature data ----------
+# ---------- calculate pmodes&ce on moor grid with WOA23 monthly temperature data ----------
 # pmodesMoor = np.zeros((ntMoor, nmodes, nzMoor)) * np.nan
 # ceMoor = np.zeros((ntMoor, nmodes)) * np.nan
 # for t in range(ntMoor):
@@ -109,17 +108,17 @@ ze = stratification['ze']
 # np.savez(r'ReanaData/WOA23_pmodes_moorGrid.npz', pmodes=pmodesMoor, ce=ceMoor)
 
 # ---------- calculate pmodes&ce on moor grid with sensor temperature data ----------
-stratification = np.load(r'ReanaData/WOA23_stratification_tempBySensor.npz')
-Nsq = stratification['Nsq'][:, :35]
-ze = stratification['ze'][:35]
-pmodesMoor = np.zeros((ntMoor, nmodes, nzMoor)) * np.nan
-ceMoor = np.zeros((ntMoor, nmodes)) * np.nan
-for t in range(ntMoor):
-    _, pmodes, ce = dynmodes(Nsq[t, :], ze, nmodes)
-    for m in range(nmodes):
-        itp_t = itp.interp1d(ze, pmodes[m, :], fill_value=np.nan, bounds_error=False, kind='linear')
-        pmodesMoor[t, m, :] = itp_t(depthMoor)
-    ceMoor[t, :] = ce
-pmodesMoor[:, 0, :] = 1.  # 正压模态统一为1. 避免插值导致偏离
-pmodesMoor[pmodesMoor[:, :, 0] < 0] = -pmodesMoor[pmodesMoor[:, :, 0] < 0]# 统一模态结构方向
-np.savez(r'ReanaData/WOA23_pmodes_moorGrid_tempBySensor.npz', pmodes=pmodesMoor, ce=ceMoor)
+# stratification = np.load(r'ReanaData/WOA23_stratification_tempBySensor.npz')
+# Nsq = stratification['Nsq'][:, :35]
+# ze = stratification['ze'][:35]
+# pmodesMoor = np.zeros((ntMoor, nmodes, nzMoor)) * np.nan
+# ceMoor = np.zeros((ntMoor, nmodes)) * np.nan
+# for t in range(ntMoor):
+#     _, pmodes, ce = dynmodes(Nsq[t, :], ze, nmodes)
+#     for m in range(nmodes):
+#         itp_t = itp.interp1d(ze, pmodes[m, :], fill_value=np.nan, bounds_error=False, kind='linear')
+#         pmodesMoor[t, m, :] = itp_t(depthMoor)
+#     ceMoor[t, :] = ce
+# pmodesMoor[:, 0, :] = 1.  # 正压模态统一为1. 避免插值导致偏离
+# pmodesMoor[pmodesMoor[:, :, 0] < 0] = -pmodesMoor[pmodesMoor[:, :, 0] < 0]# 统一模态结构方向
+# np.savez(r'ReanaData/WOA23_pmodes_moorGrid_tempBySensor.npz', pmodes=pmodesMoor, ce=ceMoor)

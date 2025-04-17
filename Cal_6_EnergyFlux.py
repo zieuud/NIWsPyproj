@@ -38,7 +38,7 @@ for i in range(nt):
     sig0Moor[i, :] = itp_t(depthMoor)
     itp_t = itp.interp1d(ze, dtdz[i, :], fill_value=dtdz[i, -1], bounds_error=False)
     dtdzMoor[i, :] = itp_t(depthMoor)
-    itp_t = itp.interp1d(ze, Nsq[i, :], fill_value=dtdz[i, -1], bounds_error=False)
+    itp_t = itp.interp1d(ze, Nsq[i, :], fill_value=Nsq[i, -1], bounds_error=False)
     NsqMoor[i, :] = itp_t(depthMoor)
 
 # ---------- calculate the uv perturbation ----------
@@ -51,7 +51,7 @@ vp = v - v_lp - np.tile(vbar0, (nz, 1)).T
 up_ni = filter_ni(up, dt, nt, lat_moor)
 vp_ni = filter_ni(vp, dt, nt, lat_moor)
 # ---------- calculate the pressure perturbation ----------
-# calculate the epsilon
+# calculate the displacement
 temp_vlp = filter_vlp(tempMoor, dt, nt, lat_moor)
 tempp = tempMoor - temp_vlp
 x = -tempp / dtdzMoor
@@ -59,12 +59,13 @@ x_ni = filter_ni(x, dt, nt, lat_moor)
 # calculate the rho prime
 rhop = ((sig0Moor + 1000) / g) * NsqMoor * x
 rhop_ni = ((sig0Moor + 1000) / g) * NsqMoor * x_ni
+
 # calculate the p prime
 p = np.zeros((nt, nz))
 p_ni = np.zeros((nt, nz))
 for i in range(nz):
-    p[:, i] = np.nansum(rhop[:, :i + 1] * g * dz, 1)
-    p_ni[:, i] = np.nansum(rhop_ni[:, :i + 1] * g * dz, 1)
+    p[:, i] = np.nansum(rhop[:, :i+1] * g * dz, 1)
+    p_ni[:, i] = np.nansum(rhop_ni[:, :i+1] * g * dz, 1)
 
 pbar = np.nansum(p * dz, 1) / H
 pbar = -np.tile(pbar, (nz, 1)).T

@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
-# from sklearn.linear_model import Ridge
+from sklearn.linear_model import Ridge
 from func_1_dynmodes import dynmodes
 
 
 startIdx = 9
-endIdx = 172  # 172 181
+endIdx = 181  # 172 181
 uv_ni = np.load(r'MoorData/ADCP_uv_ni_wkb.npz')
 u_ni = uv_ni['u_ni_wkb'][:, startIdx:endIdx]
 v_ni = uv_ni['v_ni_wkb'][:, startIdx:endIdx]
@@ -18,7 +18,7 @@ dz = 8
 dt = 3600
 
 nmodes = 11
-pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid.npz')['pmodes']
+pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid_yearly.npz')['pmodes']
 # pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid_tempBySensor.npz')['pmodes']
 
 # u_mod = np.zeros((nt, nmodes, nz)) * np.nan
@@ -75,12 +75,12 @@ pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid.npz')['pmodes']
 
 # ---------- energy flux projection fx fy ----------
 fh = np.load(r'MoorData/EnergyFlux.npz')
-fx = fh['fx'][:, :-9]
-fy = fh['fy'][:, :-9]
+fx = fh['fx'][:, :]
+fy = fh['fy'][:, :]
 
 depthFlux = depth
 nzFlux = len(depthFlux)
-pmodesFlux = pmodes[:, :, startIdx:endIdx]
+pmodesFlux = pmodes[:, startIdx:endIdx]
 
 # normalize pmodes
 # norm = np.sqrt(np.nansum(pmodesFlux ** 2 * dz, -1))
@@ -92,22 +92,22 @@ fy_mod = np.zeros((nt, nmodes, nz)) * np.nan
 # The least squares regression
 for t in range(nt):
     valid_indices = np.where(~np.isnan(fx[t, :]))[0]
-    fx_mod_coeff = np.linalg.lstsq(pmodesFlux[t, :, valid_indices], fx[t, valid_indices], rcond=None)[0]
-    fx_mod[t, :, valid_indices] = fx_mod_coeff * pmodesFlux[t, :, valid_indices]
-    fy_mod_coeff = np.linalg.lstsq(pmodesFlux[t, :, valid_indices], fy[t, valid_indices], rcond=None)[0]
-    fy_mod[t, :, valid_indices] = fy_mod_coeff * pmodesFlux[t, :, valid_indices]
+    fx_mod_coeff = np.linalg.lstsq(pmodesFlux[:, valid_indices].T, fx[t, valid_indices], rcond=None)[0]
+    fx_mod[t, :, valid_indices] = (fx_mod_coeff.reshape(nmodes, 1) * pmodesFlux[:, valid_indices]).T
+    fy_mod_coeff = np.linalg.lstsq(pmodesFlux[:, valid_indices].T, fy[t, valid_indices], rcond=None)[0]
+    fy_mod[t, :, valid_indices] = (fy_mod_coeff.reshape(nmodes, 1) * pmodesFlux[:, valid_indices]).T
 # Ridge regression
 # for t in range(nt):
 #     valid_indices = np.where(~np.isnan(fx[t, :]))[0]
-#     ridge1 = Ridge(alpha=1e-3)
-#     ridge1.fit(pmodesFlux[t, :, valid_indices], fx[t, valid_indices])
+#     ridge1 = Ridge(alpha=1e-1)
+#     ridge1.fit(pmodesFlux[:, valid_indices].T, fx[t, valid_indices])
 #     fx_mod_coeff = ridge1.coef_
-#     fx_mod[t, :, valid_indices] = fx_mod_coeff * pmodesFlux[t, :, valid_indices]
-#     ridge2 = Ridge(alpha=1e-2)
-#     ridge2.fit(pmodesFlux[t, :, valid_indices], fy[t, valid_indices])
+#     fx_mod[t, :, valid_indices] = (fx_mod_coeff.reshape(nmodes, 1) * pmodesFlux[:, valid_indices]).T
+#     ridge2 = Ridge(alpha=1e-1)
+#     ridge2.fit(pmodesFlux[:, valid_indices].T, fy[t, valid_indices])
 #     fy_mod_coeff = ridge2.coef_
-#     fy_mod[t, :, valid_indices] = fy_mod_coeff * pmodesFlux[t, :, valid_indices]
+#     fy_mod[t, :, valid_indices] = (fy_mod_coeff.reshape(nmodes, 1) * pmodesFlux[:, valid_indices]).T
 
-np.savez(r'MoorData/EnergyFlux_10bcmodes_fhProj_1400m.npz', fx_mod=fx_mod, fy_mod=fy_mod)
+np.savez(r'MoorData/EnergyFlux_10bcmodes_fhProj.npz', fx_mod=fx_mod, fy_mod=fy_mod)
 
 print('c')

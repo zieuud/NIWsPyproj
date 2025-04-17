@@ -82,10 +82,10 @@ fx_ni_mod = pp_ni_mod * up_mod_ni
 fy_ni_mod = pp_ni_mod * vp_mod_ni
 
 fh_ni_mod = np.sqrt(fx_ni_mod ** 2 + fy_ni_mod ** 2)
-
+angle_mod = np.rad2deg(np.arctan2(fy_ni_mod, fx_ni_mod))
 for i in range(6):
     plt.subplot(6, 1, i+1)
-    plt.pcolormesh(timeMoor, depthFlux, fh_ni_mod[:, i, :].T, vmin=0, vmax=100)
+    plt.pcolormesh(timeMoor, depthFlux, angle_mod[:, i, :].T, cmap='Accent')
     plt.colorbar()
 plt.show()
 

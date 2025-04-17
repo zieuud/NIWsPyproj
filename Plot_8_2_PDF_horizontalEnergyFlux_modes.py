@@ -14,10 +14,10 @@ from matplotlib.colors import LogNorm
 # fy_mod = pp_mod * vp_mod
 # fx_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj.npz')['fx_mod']
 # fy_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj.npz')['fy_mod']
-# fx_mod = np.load(r'MoorData/EnergyFlux_modes.npz')['fx_ni_mod']
-# fy_mod = np.load(r'MoorData/EnergyFlux_modes.npz')['fy_ni_mod']
-fx_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_norm.npz')['fx_mod']
-fy_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_norm.npz')['fy_mod']
+fx_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_1400m.npz')['fx_mod'][:, :, :]
+fy_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_1400m.npz')['fy_mod'][:, :, :]
+# fx_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_norm.npz')['fx_mod']
+# fy_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_norm.npz')['fy_mod']
 fx_mod_ta = np.nansum(fx_mod, -1)
 fy_mod_ta = np.nansum(fy_mod, -1)
 nt, nmodes, nz = np.shape(fx_mod)
@@ -41,7 +41,7 @@ for i in range(1, 5):
     hist, x_edges, y_edges = np.histogram2d(fx, fy, bins=(20, 20))
     hist_density = hist / np.sum(hist)
     x_mesh, y_mesh = np.meshgrid(x_edges, y_edges)
-    c = plt.pcolormesh(x_mesh, y_mesh, hist_density.T, cmap='OrRd', norm=LogNorm(vmin=1e-4, vmax=1e-2))
+    c = plt.pcolormesh(x_mesh, y_mesh, hist_density.T, cmap='OrRd', norm=LogNorm(vmin=1e-6, vmax=1e-2))
     cb = plt.colorbar(c)
     cb.ax.set_title('PDF')
     plt.plot([-1e3, 1e3], [0, 0], 'k')

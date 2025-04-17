@@ -4,11 +4,12 @@ import scipy.interpolate as itp
 from func_0_filter import filter_lp, filter_ni, filter_vlp
 
 
+endIdx = 172  # 181
 # load current data
 moorData = np.load('MoorData/ADCP_uv.npz')
-u = np.transpose(moorData['u'].T)[:, 9:181]
-v = np.transpose(moorData['v'].T)[:, 9:181]
-depthMoor = moorData['depth_adcp'][9:181]
+u = np.transpose(moorData['u'].T)[:, 9:endIdx]
+v = np.transpose(moorData['v'].T)[:, 9:endIdx]
+depthMoor = moorData['depth_adcp'][9:endIdx]
 timeMoor = moorData['mtime_adcp']
 nt = len(timeMoor)
 nz = len(depthMoor)
@@ -28,7 +29,7 @@ lon_moor = -32.75
 g = 9.81
 # load modes data
 pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid.npz')['pmodes']
-pmodesFlux = pmodes[:, :, 9:181]
+pmodesFlux = pmodes[:, :, 9:endIdx]
 nmodes = 11
 
 # ---------- interpolate on moor depth ----------
@@ -52,8 +53,8 @@ v_lp = filter_lp(v, dt, nt, lat_moor)
 up = u - u_lp
 vp = v - v_lp
 
-up_mod = np.empty((nt, nmodes, nz))
-vp_mod = np.empty((nt, nmodes, nz))
+up_mod = np.empty((nt, nmodes, nz)) * np.nan
+vp_mod = np.empty((nt, nmodes, nz)) * np.nan
 for t in range(nt):
     valid_indices = np.where(~np.isnan(up[t, :]))[0]
     up_mod_coeff = np.linalg.lstsq(pmodesFlux[t, :, valid_indices], up[t, valid_indices], rcond=None)[0]
@@ -92,5 +93,5 @@ pp_ni_mod = np.transpose(np.tile(pp_ni, (nmodes - 1, 1, 1)), (1, 0, 2))
 fx_ni_mod = pp_ni_mod * up_mod_ni
 fy_ni_mod = pp_ni_mod * vp_mod_ni
 
-np.savez(r'MoorData/EnergyFlux_modes.npz', fx_ni_mod=fx_ni_mod, fy_ni_mod=fy_ni_mod)
+np.savez(r'MoorData/EnergyFlux_modes_1400m.npz', fx_ni_mod=fx_ni_mod, fy_ni_mod=fy_ni_mod)
 print('c')

@@ -4,13 +4,13 @@ import numpy as np
 from func_1_dynmodes import dynmodes
 
 
-# maxIdx = 181
-maxIdx = 176
+startIdx = 9
+endIdx = 172  # 172 181
 uv_ni = np.load(r'MoorData/ADCP_uv_ni_wkb.npz')
-u_ni = uv_ni['u_ni_wkb'][:, :maxIdx]
-v_ni = uv_ni['v_ni_wkb'][:, :maxIdx]
+u_ni = uv_ni['u_ni_wkb'][:, startIdx:endIdx]
+v_ni = uv_ni['v_ni_wkb'][:, startIdx:endIdx]
 moor = np.load(r'MoorData/ADCP_uv.npz')
-depth = moor['depth_adcp'][:maxIdx]
+depth = moor['depth_adcp'][startIdx:endIdx]
 time = moor['mtime_adcp']
 nz = len(depth)
 nt = len(time)
@@ -18,8 +18,8 @@ dz = 8
 dt = 3600
 
 nmodes = 11
-# pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid.npz')['pmodes']
-pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid_tempBySensor.npz')['pmodes']
+pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid.npz')['pmodes']
+# pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid_tempBySensor.npz')['pmodes']
 
 # u_mod = np.zeros((nt, nmodes, nz)) * np.nan
 # v_mod = np.zeros((nt, nmodes, nz)) * np.nan
@@ -75,19 +75,19 @@ pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid_tempBySensor.npz')['pmodes']
 
 # ---------- energy flux projection fx fy ----------
 fh = np.load(r'MoorData/EnergyFlux.npz')
-fx = fh['fx'][:, :-5]
-fy = fh['fy'][:, :-5]
+fx = fh['fx'][:, :-9]
+fy = fh['fy'][:, :-9]
 
-depthFlux = depth[9:]
+depthFlux = depth
 nzFlux = len(depthFlux)
-pmodesFlux = pmodes[:, :, 9:maxIdx]
+pmodesFlux = pmodes[:, :, startIdx:endIdx]
 
 # normalize pmodes
 # norm = np.sqrt(np.nansum(pmodesFlux ** 2 * dz, -1))
 # pmodesFluxNorm = pmodesFlux / norm.reshape(nt, nmodes, 1)
 
-fx_mod = np.zeros((nt, nmodes, nz))
-fy_mod = np.zeros((nt, nmodes, nz))
+fx_mod = np.zeros((nt, nmodes, nz)) * np.nan
+fy_mod = np.zeros((nt, nmodes, nz)) * np.nan
 
 # The least squares regression
 for t in range(nt):
@@ -108,6 +108,6 @@ for t in range(nt):
 #     fy_mod_coeff = ridge2.coef_
 #     fy_mod[t, :, valid_indices] = fy_mod_coeff * pmodesFlux[t, :, valid_indices]
 
-np.savez(r'MoorData/EnergyFlux_10bcmodes_fhProj_norm_sensor.npz', fx_mod=fx_mod, fy_mod=fy_mod)
+np.savez(r'MoorData/EnergyFlux_10bcmodes_fhProj_1400m.npz', fx_mod=fx_mod, fy_mod=fy_mod)
 
 print('c')

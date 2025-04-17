@@ -9,9 +9,9 @@ from matplotlib.colors import LogNorm
 # fy = fh['fy'].flatten()
 # fx = np.nansum(fh['fx'], -1).flatten()
 # fy = np.nansum(fh['fy'], -1).flatten()
-fh_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_Ridge.npz')
-fx = np.nansum(fh_mod['fx_mod'], (1, 2))
-fy = np.nansum(fh_mod['fy_mod'], (1, 2))
+fh_mod = np.load(r'MoorData/EnergyFlux_10bcmodes_fhProj_1400m.npz')
+fx = np.nansum(fh_mod['fx_mod'][:, :, :], (1, 2))
+fy = np.nansum(fh_mod['fy_mod'][:, :, :], (1, 2))
 
 fx = fx[~np.isnan(fx)]
 fy = fy[~np.isnan(fy)]
@@ -25,7 +25,7 @@ theta_mesh, magnitude_mesh = np.meshgrid(theta_edges, r_edges)
 plt.figure(figsize=(6, 6))
 ax = plt.subplot(111, polar=True)
 c = ax.pcolormesh(theta_mesh, magnitude_mesh, hist_density.T, cmap='OrRd', norm=LogNorm(vmin=1e-4, vmax=1e-2))
-ax.set_yticks([1000, 2000])
+# ax.set_yticks([1000, 2000])
 plt.colorbar(c, label='PDF', orientation='horizontal')
 plt.title('PDF of Horizontal Energy Flux')
 # plt.savefig(r'figures\fig_8_1_EnergyFluxPDF.jpg', dpi=300, bbox_inches='tight')

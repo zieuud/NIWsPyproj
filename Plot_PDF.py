@@ -1,13 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import gsw
 from matplotlib.colors import Normalize, LogNorm
 import scipy.stats as stats
 
 
 pycnocline = np.load(r'ReanaData\GLORYS_pycnocline.npy')
 vorticity_moor = np.load(r'ReanaData\AVISO_vorticity1.npy')
-# vorticity_moor = np.load(r'ReanaData\GLORYS_vorticity.npy')[:, 0]
 adcp = np.load('MoorData/ADCP_uv_ni_wkb.npz')
 KE_ni = adcp['KE_ni_wkb']
 adcp0 = np.load('MoorData/ADCP_uv.npz')
@@ -66,7 +64,7 @@ plt.show()
 # fig = plt.figure(figsize=(10, 8))
 # gs = fig.add_gridspec(3, 2, height_ratios=[1, 1, 1], width_ratios=[1, 0.05], wspace=0.05)
 #
-# ax1 = fig.add_subplot(gs[0, 0])
+# ax1 = fig.add_subplot(gs[0 0])
 # ax1.plot(moorDate, np.zeros(len(moorDate)), 'r--')
 # ax1.plot(moorDate, vorticity_moor)
 # ax1.set_ylabel(r'$\zeta_g$ $(s^{-1})$')

@@ -24,14 +24,14 @@ v_ni = uv_ni['v_ni']
 KE_ni = uv_ni['ke_ni']
 u_ni_wkb = np.copy(u_ni)
 v_ni_wkb = np.copy(v_ni)
-N2_averaged = np.nanmean(NsqMoor[:, :] , 1)
+N2_averaged = np.nanmean(NsqMoor[:, :], 1)
 for i in range(nt):
-    scale = (NsqMoor[i, :maxIdx] / N2_averaged[i]) ** 0.125
+    scale = (NsqMoor[i, :maxIdx] / N2_averaged[i]) ** -0.25
     u_ni_wkb[i, :maxIdx] = u_ni[i, :maxIdx] * scale
     v_ni_wkb[i, :maxIdx] = v_ni[i, :maxIdx] * scale
 KE_ni_wkb = 1 / 2 * 1025 * (u_ni_wkb ** 2 + v_ni_wkb ** 2)
 
-np.savez('MoorData/ADCP_uv_ni_wkb.npz', u_ni_wkb=u_ni_wkb, v_ni_wkb=v_ni_wkb, KE_ni_wkb=KE_ni_wkb)
+np.savez('MoorData/ADCP_uv_ni_wkb_1.npz', u_ni_wkb=u_ni_wkb, v_ni_wkb=v_ni_wkb, KE_ni_wkb=KE_ni_wkb)
 
 # plt.subplot(2, 1, 1)
 # plt.plot(np.nansum(KE_ni, -1), 'r-')

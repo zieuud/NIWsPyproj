@@ -20,7 +20,7 @@ plt.colorbar()
 plt.subplot(2, 1, 2)
 plt.pcolormesh(time, depth, ke_ni_wkb.T, cmap='Oranges', vmin=0, vmax=15)
 plt.colorbar()
-plt.savefig(r'figures/check_wkbscaling_profile.jpg', dpi=300, bbox_inches='tight')
+# plt.savefig(r'figures/check_wkbscaling_profile.jpg', dpi=300, bbox_inches='tight')
 plt.show()
 
 # check conservation
@@ -36,5 +36,5 @@ plt.axhline(0, color='r', linestyle='--')
 plt.legend()
 plt.ylabel('$J/m^{2}$')
 
-plt.savefig(r'figures/check_wkbscaling_conservation.jpg', dpi=300, bbox_inches='tight')
+# plt.savefig(r'figures/check_wkbscaling_conservation.jpg', dpi=300, bbox_inches='tight')
 plt.show()

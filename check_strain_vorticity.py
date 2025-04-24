@@ -8,9 +8,9 @@ from scipy import interpolate
 vorticity_moor_hourly1 = np.load(r'ReanaData\GLORYS_vorticity.npy')[:, :180]
 strain_moor_hourly1 = np.load(r'ReanaData\GLORYS_strain.npy')[:, :180]
 # use AVISO data
-vorticity_moor_hourly2 = np.load(r'ReanaData\AVISO_vorticity1.npy')
+vorticity_moor_hourly2 = np.load(r'ReanaData\AVISO_0125_vorticity3.npy')
 vorticity_moor_hourly2 = np.tile(vorticity_moor_hourly2, (180, 1)).T
-strain_moor_hourly2 = np.load(r'ReanaData\AVISO_strain1.npy')
+strain_moor_hourly2 = np.load(r'ReanaData\AVISO_0125_strain4.npy')
 strain_moor_hourly2 = np.tile(strain_moor_hourly2, (180, 1)).T
 
 lat_moor = 36.23

@@ -16,8 +16,8 @@ dz = 8
 dt = 3600
 
 nmodes = 11
-pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid.npz')['pmodes']
-
+pmodes = np.load(r'ReanaData/WOA23_pmodes_moorGrid_yearly.npz')['pmodes']
+pmodes = np.tile(pmodes, (nt, 1, 1))
 u_mod = np.zeros((nt, nmodes, nz)) * np.nan
 v_mod = np.zeros((nt, nmodes, nz)) * np.nan
 ke_mod = np.zeros((nt, nmodes, nz)) * np.nan
@@ -30,6 +30,6 @@ for t in range(nt):
     v_mod[t, :, valid_indices] = v_mod_coeff * pmodes[t, :, valid_indices]
     ke_mod[t, :, :] = 1 / 2 * 1025 * (u_mod[t, :, :] ** 2 + v_mod[t, :, :] ** 2)
 
-np.savez(r'MoorData/ADCP_uv_ni_10bcmodes_1.npz', u_mod=u_mod, v_mod=v_mod, ke_mod=ke_mod)
+np.savez(r'MoorData/ADCP_uv_ni_10bcmodes_test.npz', u_mod=u_mod, v_mod=v_mod, ke_mod=ke_mod)
 
 print('c')

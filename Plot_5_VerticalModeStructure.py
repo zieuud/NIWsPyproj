@@ -41,7 +41,7 @@ for i in range(11):
         ax.text(0, -1800, 'mode {}'.format(i), fontsize=16, va='center', ha='center')
         ax.set_ylim(-2000, 0)
 
-plt.savefig(r'figures/fig_5_VerticalModeStructure.jpg', dpi=300, bbox_inches='tight')
-plt.savefig(r'figuresFinal/fig_5_VerticalModeStructure.png', dpi=300, bbox_inches='tight')
-plt.savefig(r'figuresFinal/fig_5_VerticalModeStructure.pdf', bbox_inches='tight')
+# plt.savefig(r'figures/fig_5_VerticalModeStructure.jpg', dpi=300, bbox_inches='tight')
+# plt.savefig(r'figuresFinal/fig_5_VerticalModeStructure.png', dpi=300, bbox_inches='tight')
+# plt.savefig(r'figuresFinal/fig_5_VerticalModeStructure.pdf', bbox_inches='tight')
 plt.show()
